@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Simple trip earnings and target tracker">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>Trip Earnings</title>
+  <style>
+    :root{--bg:#f5f7fb;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--accent:#2563eb;--accent2:#eff6ff;--danger:#dc2626;--success:#059669}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+    button,input{font:inherit}button{cursor:pointer}body{padding-bottom:24px}
+    .app{max-width:760px;margin:auto;padding:16px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .brand{font-size:22px;font-weight:800}.sub{font-size:12px;color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;margin-bottom:12px}
+    .hero{background:#0f172a;color:#fff;border:0}.hero .muted{color:#cbd5e1}.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.hero .label{color:#cbd5e1}
+    .big{font-size:30px;font-weight:800;margin-top:2px}.mid{font-size:20px;font-weight:750}.progress{height:10px;background:#334155;border-radius:99px;overflow:hidden;margin:14px 0 8px}.bar{height:100%;width:0;background:#60a5fa;border-radius:99px;transition:width .25s}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px}.stat strong{display:block;font-size:19px;margin-top:3px}
+    .nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}.nav button{border:1px solid var(--border);background:#fff;border-radius:13px;padding:11px 5px;font-weight:700;font-size:13px}.nav button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+    .section{display:none}.section.active{display:block}.section-title{font-size:18px;font-weight:800;margin:0 0 10px}
+    .route-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.route{border:1px solid var(--border);background:#fff;border-radius:18px;padding:14px;text-align:left;min-height:104px}.route:active{transform:scale(.99)}.route-name{font-weight:750;line-height:1.3}.fare{font-size:22px;font-weight:850;margin-top:8px;color:var(--accent)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr 110px auto;gap:8px}.input{width:100%;border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff;color:var(--text);outline:none}.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent2)}
+    .primary{border:0;background:var(--accent);color:#fff;border-radius:12px;padding:12px 16px;font-weight:800}.secondary{border:1px solid var(--border);background:#fff;color:var(--text);border-radius:11px;padding:9px 12px;font-weight:700}.danger{color:var(--danger)}
+    .route-row,.history-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--border);background:#fff;border-radius:15px;padding:12px;margin-bottom:8px}.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .empty{padding:20px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:15px}.history-main{min-width:0}.history-main strong{display:block;overflow-wrap:anywhere}.history-meta{font-size:12px;color:var(--muted);margin-top:3px}
+    .message{min-height:20px;color:var(--muted);font-size:13px;text-align:center;margin:8px 0}.settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.target-form{display:flex;gap:8px}.footer{text-align:center;color:var(--muted);font-size:12px;padding:12px}
+    @media(max-width:560px){.app{padding:12px}.route-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}.form-grid .fare-input{grid-column:1}.form-grid .primary{grid-column:2}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.nav button{font-size:12px}.hero-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:360px){.nav{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.form-grid .fare-input,.form-grid .primary{grid-column:auto}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div><div class="brand">Trip Earnings</div><div class="sub">Your routes. Your target. Your earnings.</div></div>
+    <button id="installBtn" class="secondary" hidden>Install</button>
+  </header>
+
+  <section class="card hero">
+    <div class="hero-grid">
+      <div><div class="label">Target</div><div id="target" class="big">MVR 0</div></div>
+      <div><div class="label">Remaining</div><div id="remaining" class="big">MVR 0</div></div>
+    </div>
+    <div class="progress"><div id="bar" class="bar"></div></div>
+    <div class="sub muted"><span id="earned">Earned MVR 0</span> · <span id="percent">0%</span></div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="label">Today</div><strong id="today">MVR 0</strong></div>
+    <div class="stat"><div class="label">Trips</div><strong id="tripCount">0</strong></div>
+    <div class="stat"><div class="label">Average</div><strong id="average">MVR 0</strong></div>
+  </section>
+
+  <nav class="nav" aria-label="Main navigation">
+    <button class="nav-btn active" data-tab="dashboard">Dashboard</button>
+    <button class="nav-btn" data-tab="routes">Routes</button>
+    <button class="nav-btn" data-tab="history">History</button>
+    <button class="nav-btn" data-tab="settings">Target</button>
+  </nav>
+
+  <section id="dashboard" class="section active">
+    <div class="card">
+      <h2 class="section-title">Quick trip</h2>
+      <div id="quickRoutes" class="route-grid"></div>
+    </div>
+  </section>
+
+  <section id="routes" class="section">
+    <div class="card">
+      <h2 class="section-title">Add route</h2>
+      <form id="routeForm" class="form-grid">
+        <input id="from" class="input" maxlength="80" required placeholder="From e.g. Hulhumale P1">
+        <input id="to" class="input" maxlength="80" required placeholder="To e.g. Male'">
+        <input id="fare" class="input fare-input" type="number" min="0" max="1000000" step="1" required placeholder="Fare MVR">
+        <button class="primary" type="submit">Add route</button>
+      </form>
+    </div>
+    <div id="routeList"></div>
+  </section>
+
+  <section id="history" class="section">
+    <div class="card">
+      <div class="settings-row"><h2 class="section-title">Trip history</h2><button id="clearHistory" class="secondary danger" type="button">Clear</button></div>
+      <div id="historyList"></div>
+    </div>
+  </section>
+
+  <section id="settings" class="section">
+    <div class="card">
+      <h2 class="section-title">Target</h2>
+      <form id="targetForm" class="target-form">
+        <input id="targetInput" class="input" type="number" min="0" max="100000000" step="1" required placeholder="Target in MVR">
+        <button class="primary" type="submit">Save</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2 class="section-title">Data</h2>
+      <button id="exportBtn" class="secondary" type="button">Export backup</button>
+      <button id="importBtn" class="secondary" type="button">Import backup</button>
+      <input id="importFile" type="file" accept=".json,application/json" hidden>
+      <button id="resetBtn" class="secondary danger" type="button">Reset everything</button>
+      <p class="sub">Your data is stored locally in this browser. Export a backup before clearing or changing devices.</p>
+    </div>
+  </section>
+
+  <div id="message" class="message" aria-live="polite"></div>
+  <div class="footer">MVR · Manual trip tracker</div>
+</main>
+
+<script>
+(() => {
+  const KEY = "trip-earnings-v1";
+  const $ = id => document.getElementById(id);
+  const money = n => "MVR " + Math.round(Number(n)||0).toLocaleString("en-US");
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const dayKey = d => { d=d||new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+  const timeText = d => d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  const dateText = d => d.toLocaleDateString([], {day:"2-digit",month:"short",year:"numeric"});
+
+  const defaults = {
+    target: 5000,
+    routes: [
+      {id:"r1", from:"P1", to:"P2", fare:40},
+      {id:"r2", from:"P1", to:"Male'", fare:85},
+      {id:"r3", from:"P2", to:"Male'", fare:100},
+      {id:"r4", from:"P1", to:"Hulhule", fare:80},
+      {id:"r5", from:"P2", to:"Hulhule", fare:85},
+      {id:"r6", from:"Male'", to:"Hulhule", fare:70},
+      {id:"r7", from:"In", to:"In", fare:30}
+    ],
+    trips: []
+  };
+
+  let state;
+  try {
+    const saved = localStorage.getItem(KEY);
+    state = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaults));
+  } catch { state = JSON.parse(JSON.stringify(defaults)); }
+  if (!state || typeof state !== "object") state = JSON.parse(JSON.stringify(defaults));
+  if (!Array.isArray(state.routes)) state.routes = JSON.parse(JSON.stringify(defaults.routes));
+  if (!Array.isArray(state.trips)) state.trips = [];
+  if (typeof state.target !== "number" || !Number.isFinite(state.target) || state.target < 0) state.target = defaults.target;
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+
+  function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+  function flash(t){ $("message").textContent=t; clearTimeout(flash.t); flash.t=setTimeout(()=>$("message").textContent="",2200); }
+
+  function render(){
+    const earned = state.trips.reduce((s,t)=>s+t.fare,0);
+    const remaining = Math.max(0,state.target-earned);
+    const pct = state.target ? Math.min(100,earned/state.target*100) : 0;
+    const todayTrips = state.trips.filter(t=>t.day===dayKey());
+    const today = todayTrips.reduce((s,t)=>s+t.fare,0);
+    $("target").textContent=money(state.target);
+    $("remaining").textContent=money(remaining);
+    $("earned").textContent="Earned "+money(earned);
+    $("percent").textContent=pct.toFixed(0)+"%";
+    $("bar").style.width=pct+"%";
+    $("today").textContent=money(today);
+    $("tripCount").textContent=state.trips.length;
+    $("average").textContent=money(state.trips.length ? earned/state.trips.length : 0);
+    $("targetInput").value=state.target || "";
+
+    $("quickRoutes").innerHTML = state.routes.length ? state.routes.map(r =>
+      `<button class="route" type="button" data-add="${esc(r.id)}"><div class="route-name">${esc(r.from)} → ${esc(r.to)}</div><div class="fare">${money(r.fare)}</div><div class="sub">Tap to record trip</div></button>`
+    ).join("") : `<div class="empty">No routes yet. Add one in Routes.</div>`;
+
+    $("routeList").innerHTML = state.routes.length ? state.routes.map(r =>
+      `<div class="route-row"><div><strong>${esc(r.from)} → ${esc(r.to)}</strong><div class="sub">${money(r.fare)}</div></div><div class="actions"><button class="secondary" type="button" data-add="${esc(r.id)}">Add trip</button><button class="secondary danger" type="button" data-delete="${esc(r.id)}">Delete</button></div></div>`
+    ).join("") : `<div class="empty">No routes yet.</div>`;
+
+    const history=[...state.trips].reverse();
+    $("historyList").innerHTML = history.length ? history.map(t =>
+      `<div class="history-row"><div class="history-main"><strong>${esc(t.from)} → ${esc(t.to)}</strong><div class="history-meta">${esc(t.date)} · ${esc(t.time)}</div></div><strong>+${money(t.fare)}</strong></div>`
+    ).join("") : `<div class="empty">No trips recorded yet.</div>`;
+  }
+
+  function addTrip(id){
+    const r=state.routes.find(x=>String(x.id)===String(id));
+    if(!r) return;
+    const d=new Date();
+    state.trips.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),from:r.from,to:r.to,fare:Number(r.fare),day:dayKey(d),date:dateText(d),time:timeText(d)});
+    save(); render(); flash(`${money(r.fare)} added. ${money(Math.max(0,state.target-state.trips.reduce((s,t)=>s+t.fare,0)))} remaining.`);
+  }
+
+  document.addEventListener("click", e => {
+    const b=e.target.closest("button"); if(!b) return;
+    if(b.dataset.tab){
+      document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x===b));
+      document.querySelectorAll(".section").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab));
+    }
+    if(b.dataset.add) addTrip(b.dataset.add);
+    if(b.dataset.delete){
+      state.routes=state.routes.filter(r=>String(r.id)!==String(b.dataset.delete)); save(); render(); flash("Route deleted.");
+    }
+  });
+
+  $("routeForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const from=$("from").value.trim(),to=$("to").value.trim(),fare=Number($("fare").value);
+    if(!from||!to||!Number.isFinite(fare)||fare<0){flash("Enter a valid route and fare.");return;}
+    state.routes.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),from,to,fare});
+    save(); e.target.reset(); render(); flash("Route added.");
+  });
+
+  $("targetForm").addEventListener("submit",e=>{
+    e.preventDefault(); const n=Number($("targetInput").value);
+    if(!Number.isFinite(n)||n<0){flash("Enter a valid target.");return;}
+    state.target=n; save(); render(); flash("Target saved.");
+  });
+
+  $("clearHistory").addEventListener("click",()=>{
+    if(!state.trips.length)return;
+    if(confirm("Clear all trip history?")){state.trips=[];save();render();flash("History cleared.");}
+  });
+
+  $("importBtn").addEventListener("click",()=>$("importFile").click());
+  $("importFile").addEventListener("change",async e=>{
+    const file=e.target.files&&e.target.files[0]; if(!file)return;
+    try{const incoming=JSON.parse(await file.text()); if(!incoming||!Array.isArray(incoming.routes)||!Array.isArray(incoming.trips)||typeof incoming.target!=="number")throw new Error();
+      state={target:Math.max(0,incoming.target),routes:incoming.routes.map(r=>({id:String(r.id||Date.now()+Math.random()),from:String(r.from||""),to:String(r.to||""),fare:Math.max(0,Number(r.fare)||0)})).filter(r=>r.from&&r.to),trips:incoming.trips.map(t=>({id:String(t.id||Date.now()+Math.random()),from:String(t.from||""),to:String(t.to||""),fare:Math.max(0,Number(t.fare)||0),day:String(t.day||""),date:String(t.date||""),time:String(t.time||"")})).filter(t=>t.from&&t.to)};
+      save();render();flash("Backup imported.");}catch(err){flash("That backup file is not valid.");} e.target.value="";
+  });
+
+  $("resetBtn").addEventListener("click",()=>{
+    if(confirm("Reset routes, target and all trip history?")){
+      state=JSON.parse(JSON.stringify(defaults));save();render();flash("App reset.");
+    }
+  });
+
+  $("exportBtn").addEventListener("click",()=>{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="trip-earnings-backup.json";a.click();URL.revokeObjectURL(a.href);
+  });
+
+  let deferredPrompt;
+  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").hidden=false;});
+  $("installBtn").addEventListener("click",async()=>{
+    if(!deferredPrompt)return;
+    deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $("installBtn").hidden=true;
+  });
+
+  if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+  render();
+})();
+</script>
+</body>
+</html>

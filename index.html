@@ -161,6 +161,8 @@ svg{display:block}
 .prog .tk.on{background:var(--accent-ink);opacity:.6}
 .hero-foot{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);position:relative;z-index:1}
 .hero-foot b{color:var(--text);font-weight:600;font-family:var(--mono)}
+.day-note{position:relative;z-index:1;margin:8px 0 0;font-size:12px;color:var(--muted)}
+.hero.fresh .roll{color:var(--accent-fg)}
 .hero-empty{position:relative;z-index:1;margin-top:16px}
 .ms-row{display:flex;gap:6px;margin-top:14px;position:relative;z-index:1}
 .ms{flex:1;height:34px;border-radius:11px;background:var(--surface3);border:1px solid var(--line);font-size:11.5px;font-weight:600;color:var(--faint);display:flex;align-items:center;justify-content:center;gap:4px;transition:.2s}
@@ -611,6 +613,7 @@ html[data-theme="daylight"] .seg button.on,html[data-theme="forest"] .seg button
   .roll { font-size: clamp(30px, 8vw, 40px); }
   .prog { height: 6px; margin: 9px 0 6px; }
   .hero-foot { font-size: 10px; }
+  .day-note { margin-top: 4px; font-size: 10px; }
   .ms-row { gap: 4px; margin-top: 7px; }
   .ms { height: 25px; border-radius: 8px; font-size: 10px; }
   .ms .ico { width: 11px; height: 11px; }
@@ -740,20 +743,21 @@ html[data-theme="daylight"] .seg button.on,html[data-theme="forest"] .seg button
         <div>
           <div class="hero" id="hero">
             <div class="hero-top">
-              <button class="tag acc" type="button" data-act="edit-target"><span data-ic="target"></span><span id="heroPeriod">Target</span></button>
+              <button class="tag acc" type="button" data-act="edit-target"><span data-ic="refresh"></span><span id="heroPeriod">Today</span></button>
               <span class="tag" id="heroPct">0%</span>
             </div>
             <div id="heroBody">
-              <div class="hero-label" id="heroLabel">Left to earn</div>
+              <div class="hero-label" id="heroLabel">Earned today</div>
               <div class="hero-amt"><span class="cur">MVR</span><div class="roll" id="remain" role="img" aria-label="0"></div></div>
               <div class="prog" aria-hidden="true"><div class="fill" id="progFill"></div><i class="tk" style="left:25%"></i><i class="tk" style="left:50%"></i><i class="tk" style="left:75%"></i></div>
-              <div class="hero-foot"><span>Earned <b id="heroEarned">0</b></span><span>Target <b id="heroTarget">0</b></span></div>
+              <div class="hero-foot"><span>Left <b id="heroLeft">0</b></span><span>Target <b id="heroTarget">0</b></span></div>
+              <p class="day-note" id="dayNote">Resets at midnight. Trips stay saved.</p>
               <div class="ms-row" id="msRow"></div>
             </div>
           </div>
           <div class="kpis" id="todayKpis"></div>
 
-          <div class="sec-h"><h3>Quick trip</h3><button class="link" type="button" data-view="routes">Manage <span data-ic="chevR"></span></button></div>
+          <div class="sec-h"><h3>Record today</h3><button class="link" type="button" data-view="routes">Manage <span data-ic="chevR"></span></button></div>
           <div class="routes-grid" id="quickRoutes"></div>
           <div class="extras" id="extras"></div>
         </div>
@@ -767,7 +771,7 @@ html[data-theme="daylight"] .seg button.on,html[data-theme="forest"] .seg button
             <div class="week-mini" id="weekMini"></div>
           </div>
 
-          <div class="sec-h"><h3>Recent</h3><button class="link" type="button" data-view="activity">See all <span data-ic="chevR"></span></button></div>
+          <div class="sec-h"><h3>Saved trips</h3><button class="link" type="button" data-view="activity">See all <span data-ic="chevR"></span></button></div>
           <div class="list" id="recent"></div>
         </div>
       </div>
@@ -775,7 +779,7 @@ html[data-theme="daylight"] .seg button.on,html[data-theme="forest"] .seg button
 
     <!-- ACTIVITY -->
     <section id="v-activity" class="view" aria-label="Activity">
-      <div class="vh"><div><h2>Activity</h2><p>Trips, extras and expenses</p></div>
+      <div class="vh"><div><h2>Activity</h2><p>Every trip is kept. Home resets each day.</p></div>
         <button class="btn sec sm" type="button" data-act="export-filtered"><span data-ic="download"></span>CSV</button></div>
       <div class="act-wrap">
         <div>
@@ -830,8 +834,8 @@ html[data-theme="daylight"] .seg button.on,html[data-theme="forest"] .seg button
             <h4>Earnings target</h4>
             <form id="targetForm" class="form">
               <div class="amtwrap"><span class="cur">MVR</span><input id="tAmount" class="inp big" type="number" inputmode="decimal" min="0" max="100000000" step="any" placeholder="0" aria-label="Target amount in MVR"></div>
-              <div class="field"><span>Period</span><div class="seg" id="tPeriod"><button type="button" data-v="day">Daily</button><button type="button" data-v="week">Weekly</button><button type="button" data-v="month">Monthly</button><button type="button" data-v="all">Total</button></div></div>
               <div class="field"><span>Count progress using</span><div class="seg" id="tBasis"><button type="button" data-v="gross">Gross earnings</button><button type="button" data-v="net">Net profit</button></div></div>
+              <p class="hint">Daily target. At midnight the home board returns to zero. Trips, extras and expenses stay in Activity and Reports.</p>
               <button class="btn pri" type="submit"><span data-ic="check"></span>Save target</button>
             </form>
           </div>
@@ -1043,7 +1047,6 @@ const CATS = [
 ];
 const catOf = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
 const PAY = {cash:"Cash", card:"Card", transfer:"Transfer"};
-const PERIODS = {day:"Daily", week:"Weekly", month:"Monthly", all:"Total"};
 const DEF_ROUTES = [
   {id:"r1", from:"P1", to:"P2", fare:40}, {id:"r2", from:"P1", to:"Male'", fare:85},
   {id:"r3", from:"P2", to:"Male'", fare:100}, {id:"r4", from:"P1", to:"Hulhule", fare:80},
@@ -1051,7 +1054,7 @@ const DEF_ROUTES = [
   {id:"r7", from:"In", to:"In", fare:30},
   {id:"x10", from:"Extra", to:"", fare:10, extra:true}, {id:"x5", from:"Extra", to:"", fare:5, extra:true}
 ];
-const DEF_SETTINGS = {target:5000, period:"month", basis:"gross", weekStart:0, fuelPrice:0, pay:"cash", haptics:true, celebrate:true, speedLimit:70, speedAlert:true, speedVoice:true};
+const DEF_SETTINGS = {target:5000, period:"day", basis:"gross", weekStart:0, fuelPrice:0, pay:"cash", haptics:true, celebrate:true, speedLimit:70, speedAlert:true, speedVoice:true};
 function defaults(){
   return {version:2, routes:clone(DEF_ROUTES), trips:[], expenses:[], settings:clone(DEF_SETTINGS), celebrated:{key:"", list:[]}, createdAt:Date.now()};
 }
@@ -1107,7 +1110,7 @@ function normalize(raw, legacy){
   const tgt = num(legacy ? raw.target : s.target);
   out.settings = {
     target: Number.isFinite(tgt) && tgt >= 0 ? r2(tgt) : DEF_SETTINGS.target,
-    period: legacy ? "all" : (PERIODS[s.period] ? s.period : "month"),
+    period: "day",
     basis: s.basis === "net" ? "net" : "gross",
     weekStart: [0,1,6].includes(Number(s.weekStart)) ? Number(s.weekStart) : 0,
     fuelPrice: Math.max(0, r2(s.fuelPrice)),
@@ -1165,10 +1168,12 @@ function sums(r){
   return {rev:r2(rev), exp:r2(exp), net:r2(rev - exp), trips, extras, extraRev:r2(extraRev), avg: trips ? tripRev / trips : 0, fuel:r2(fuel), liters:r2(liters), nExp};
 }
 function targetState(){
-  const st = S.settings, r = range(st.period), sm = sums(r);
+  // The home board is always the current calendar day. Midnight starts a new
+  // key so progress and milestones reset; trip records are never removed.
+  const st = S.settings, r = range("day"), sm = sums(r);
   const earned = st.basis === "net" ? sm.net : sm.rev, t = st.target;
   const p = t > 0 ? Math.max(0, earned / t * 100) : 0;
-  return {r, sm, earned, t, pct:p, left:Math.max(0, r2(t - earned)), key: st.period === "all" ? "all" : st.period + ":" + r.s};
+  return {r, sm, earned, t, pct:p, left:Math.max(0, r2(t - earned)), key:"day:" + r.s};
 }
 const routeLabel = o => o.extra ? (o.from || "Extra") : o.from + " → " + o.to;
 function entries(){
@@ -1287,7 +1292,7 @@ function render(){
 function renderHeader(){
   const h = new Date().getHours();
   $("greet").textContent = h < 5 ? "Late shift" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
-  $("todayDate").textContent = new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"});
+  $("todayDate").textContent = new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"}) + " · resets at midnight";
 }
 
 /* ---------- Entry row ---------- */
@@ -1306,22 +1311,22 @@ const emptyHTML = (icon, text, btn) => `<div class="empty">${ic(icon)}<div>${tex
 let hitId = null;
 function renderHome(){
   const st = S.settings, ts = targetState();
-  const lbl = {day:" today", week:" this week", month:" this month", all:""}[st.period];
-  $("heroPeriod").textContent = PERIODS[st.period] + " target" + (st.basis === "net" ? " · net" : "");
+  const td = ts.sm, kept = S.trips.length, clear = td.rev === 0 && td.exp === 0;
+  $("heroPeriod").textContent = "Today" + (st.basis === "net" ? " · net" : "");
   const has = ts.t > 0;
-  $("heroBody").hidden = !has; heroEmpty.hidden = has;
+  $("heroBody").hidden = false; heroEmpty.hidden = true;
+  $("hero").classList.toggle("fresh", clear);
   $("heroPct").textContent = has ? Math.floor(Math.min(ts.pct, 999)) + "%" : "—";
-  if (has) {
-    $("heroLabel").textContent = ts.left > 0 ? "Left to earn" + lbl : "Target reached" + lbl + " — keep going";
-    roll($("remain"), Math.round(ts.left).toLocaleString("en-US"));
-    $("progFill").style.width = Math.min(100, ts.pct) + "%";
-    qsa(".prog .tk").forEach((t, i) => t.classList.toggle("on", ts.pct >= (i+1)*25));
-    $("heroEarned").textContent = money(ts.earned);
-    $("heroTarget").textContent = money(ts.t);
-    $("msRow").innerHTML = MS.map(m => { const on = ts.pct >= m;
-      return `<button class="ms${on ? " on" : ""}" type="button" ${on ? `data-act="replay" data-m="${m}"` : "disabled"} aria-label="${m}% milestone ${on ? "reached, tap to replay" : "locked"}">${ic(on ? "trophy" : "lock")}${m}%</button>`; }).join("");
-  }
-  const td = sums(range("day"));
+  $("heroLabel").textContent = clear ? "New day · earned today" : (st.basis === "net" ? "Net today" : "Earned today");
+  const shown = Math.round(ts.earned);
+  roll($("remain"), (shown < 0 ? "−" : "") + Math.abs(shown).toLocaleString("en-US"));
+  $("progFill").style.width = (has ? Math.min(100, ts.pct) : 0) + "%";
+  qsa(".prog .tk").forEach((t, i) => t.classList.toggle("on", has && ts.pct >= (i+1)*25));
+  $("heroLeft").textContent = has ? money(ts.left) : "—";
+  $("heroTarget").textContent = has ? money(ts.t) : "Not set";
+  $("dayNote").textContent = (clear ? "Board is clear. " : "Resets at midnight. ") + kept + " record" + (kept === 1 ? "" : "s") + " kept.";
+  $("msRow").innerHTML = has ? MS.map(m => { const on = ts.pct >= m;
+    return `<button class="ms${on ? " on" : ""}" type="button" ${on ? `data-act="replay" data-m="${m}"` : "disabled"} aria-label="${m}% milestone ${on ? "reached, tap to replay" : "locked"}">${ic(on ? "trophy" : "lock")}${m}%</button>`; }).join("") : "";
   $("todayKpis").innerHTML =
     `<div class="kpi"><span><i style="background:var(--accent-fg)"></i>Earned today</span><strong>${money(td.rev)}</strong><small>${td.trips} trip${td.trips === 1 ? "" : "s"}${td.extras ? " + " + td.extras + " extra" : ""}</small></div>` +
     `<div class="kpi"><span><i style="background:var(--neg)"></i>Spent today</span><strong>${money(td.exp)}</strong><small>${td.nExp} expense${td.nExp === 1 ? "" : "s"}</small></div>` +
@@ -1761,8 +1766,7 @@ if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener("change", () => {
 let pendT = null;
 function renderSettings(){
   const st = S.settings;
-  if (!pendT) { pendT = {period:st.period, basis:st.basis}; $("tAmount").value = st.target || ""; }
-  qsa("#tPeriod button").forEach(b => b.classList.toggle("on", b.dataset.v === pendT.period));
+  if (!pendT) { pendT = {basis:st.basis}; $("tAmount").value = st.target || ""; }
   qsa("#tBasis button").forEach(b => b.classList.toggle("on", b.dataset.v === pendT.basis));
   $("themeGrid").innerHTML = THEMES.map(t => `<button type="button" class="th" data-act="theme" data-v="${t.id}" aria-pressed="${t.id === theme}"><span class="swt" style="background:${t.id === "auto" ? "linear-gradient(135deg,#F3F4F1 50%,#07090B 50%)" : t.bg}">${t.id === "auto" ? "" : `<i style="background:${t.s}"></i><b style="background:${t.a}"></b>`}</span>${t.name}</button>`).join("");
   if (document.activeElement !== $("pFuel")) $("pFuel").value = st.fuelPrice || "";
@@ -1773,15 +1777,15 @@ function renderSettings(){
   const raw = LS.get(V2) || "";
   $("storageInfo").textContent = `${S.trips.length} trips · ${S.expenses.length} expenses · ${S.routes.length} routes · ${(raw.length / 1024).toFixed(1)} KB stored on this device.` + (LS.get(V1) ? " Your original v1 data is kept untouched as a safety copy." : "");
 }
-qsa("#tPeriod button, #tBasis button").forEach(b => b.addEventListener("click", () => {
-  const k = b.parentElement.id === "tPeriod" ? "period" : "basis"; pendT = pendT || {period:S.settings.period, basis:S.settings.basis}; pendT[k] = b.dataset.v; renderSettings();
+qsa("#tBasis button").forEach(b => b.addEventListener("click", () => {
+  pendT = pendT || {basis:S.settings.basis}; pendT.basis = b.dataset.v; renderSettings();
 }));
 $("targetForm").addEventListener("submit", e => {
   e.preventDefault();
   const n = num($("tAmount").value || 0);
   if (!Number.isFinite(n) || n < 0) { toast("Enter a valid target."); return; }
-  Object.assign(S.settings, {target:r2(n)}, pendT || {}); pendT = null;
-  syncMilestones(true); persist(); render(); toast("Target saved.");
+  Object.assign(S.settings, {target:r2(n), period:"day", basis:(pendT && pendT.basis) || S.settings.basis}); pendT = null;
+  syncMilestones(true); persist(); render(); toast("Daily target saved. Trips stay saved.");
 });
 $("pFuel").addEventListener("change", e => { const n = num(e.target.value || 0); S.settings.fuelPrice = Number.isFinite(n) && n >= 0 ? r2(n) : 0; persist(); toast("Fuel price saved."); });
 $("pPay").addEventListener("change", e => { S.settings.pay = PAY[e.target.value] ? e.target.value : "cash"; persist(); toast("Default payment: " + PAY[S.settings.pay]); });
@@ -1978,17 +1982,16 @@ function targetSheet(){
   const st = S.settings;
   openSheet(sheetHead("Earnings target") + `
   <form id="sf" class="form" novalidate>
-    <label class="field"><span>Target amount</span><div class="amtwrap"><span class="cur">MVR</span><input class="inp big" id="gA" type="number" inputmode="decimal" min="0" step="any" value="${st.target || ""}" placeholder="0" autofocus></div></label>
-    <div class="field"><span>Period</span>${segHTML("gP", Object.entries(PERIODS), st.period)}</div>
+    <label class="field"><span>Daily target</span><div class="amtwrap"><span class="cur">MVR</span><input class="inp big" id="gA" type="number" inputmode="decimal" min="0" step="any" value="${st.target || ""}" placeholder="0" autofocus></div></label>
     <div class="field"><span>Count progress using</span>${segHTML("gB", [["gross","Gross earnings"],["net","Net profit"]], st.basis)}</div>
-    <p class="hint">Set 0 to hide the target. Milestones celebrate at 25, 50, 75 and 100%.</p>
+    <p class="hint">This target is for today only. At midnight the board goes back to zero and milestones start again. Every trip stays saved. Set 0 to hide the target.</p>
     <div class="sheet-f"><button class="btn sec" type="button" data-act="close-sheet">Cancel</button><button class="btn pri" type="submit">${ic("check")}Save</button></div>
   </form>`, b => {
-    bindSeg(b, "gP"); bindSeg(b, "gB");
+    bindSeg(b, "gB");
     b.querySelector("#sf").addEventListener("submit", e => {
       e.preventDefault(); const n = num(b.querySelector("#gA").value || 0);
       if (!Number.isFinite(n) || n < 0) { toast("Enter a valid target."); return; }
-      Object.assign(S.settings, {target:r2(n), period:segVal(b, "gP") || "month", basis:segVal(b, "gB") || "gross"}); pendT = null;
+      Object.assign(S.settings, {target:r2(n), period:"day", basis:segVal(b, "gB") || "gross"}); pendT = null;
       closeSheet(); syncMilestones(true); persist(); render(); toast("Target saved.");
     });
   });
@@ -2181,7 +2184,7 @@ $("sToggle").addEventListener("click", () => SP.w === null ? spStart() : (spStop
 $("sReset").addEventListener("click", () => { SP.max = SP.sum = SP.n = SP.dist = 0; spDraw(); });
 $("unitBtn").addEventListener("click", () => { SP.unit = SP.unit === "mi" ? "km" : "mi"; LS.set(UKEY, SP.unit); spTicks(); spDraw(); if (view === "settings") renderSettings(); });
 $("spd").addEventListener("keydown", e => { if (e.key === "Escape") $("spdClose").click(); });
-document.addEventListener("visibilitychange", () => { if (!document.hidden) { if (SP.w !== null) spLock(); render(); } });
+document.addEventListener("visibilitychange", () => { if (document.hidden) return; if (SP.w !== null) spLock(); if (!rollDay(true)) render(); });
 
 /* =========================================================
    Over-speed warning
@@ -2250,7 +2253,16 @@ spTicks(); spDraw(); if (live) spStart();
 render();
 if (LOAD_SRC === "v1") setTimeout(() => toast(`Upgraded · ${S.trips.length} trips and ${S.routes.length} routes carried over.`), 500);
 let lastDay = dayKey(Date.now());
-setInterval(() => { const k = dayKey(Date.now()); if (k !== lastDay) { lastDay = k; syncMilestones(true); persist(); render(); } else if (view === "home") renderHeader(); }, 60000);
+function rollDay(announce){
+  const k = dayKey(Date.now());
+  if (k === lastDay) { if (view === "home") renderHeader(); return false; }
+  lastDay = k;
+  // New calendar day: refresh the board only. Trip, extra and expense arrays stay.
+  syncMilestones(true); persist(); render();
+  if (announce) toast("New day. Today's board is clear — your trips are still saved.");
+  return true;
+}
+setInterval(() => rollDay(true), 30000);
 window.__tripEarnings = {get state(){ return S; }, sums, range, targetState, normalize, load,
   // test hook: feeds a simulated GPS reading through the same pipeline as real GPS
   simSpeed(kmh){ if (SP.w === null) SP.w = -1; const t = Date.now(); spPos({coords:{latitude:4.17, longitude:73.51, speed:kmh / 3.6, accuracy:8}, timestamp:t}); }};

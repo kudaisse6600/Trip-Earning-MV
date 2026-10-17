@@ -1,0 +1,127 @@
+[
+  {
+    "check": "badge: Not signed in when configured but no session",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "Sign in calls signInWithOAuth(provider=google) with redirect back to the app",
+    "pass": true,
+    "info": "{'provider': 'google', 'options': {'redirectTo': 'http://127.0.0.1:8792/index.html'}}"
+  },
+  {
+    "check": "badge: Synced after sign-in",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "account name shown",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "pre-sign-in local trip uploaded to cloud under user A",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "7 preset routes uploaded",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "profile (settings) uploaded",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "badge stays Offline while offline",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "2 changes queued while offline",
+    "pass": true,
+    "info": 2
+  },
+  {
+    "check": "cloud untouched while offline",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "reconnect flushes queue to cloud (3 trips)",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "badge: Sync failed when server errors while online",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "Sync now recovers",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "route edit reaches cloud",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "soft delete reaches cloud",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "device 2 restores 3 live trips from cloud",
+    "pass": true,
+    "info": "2/10"
+  },
+  {
+    "check": "device 2 gets edited fare (MVR 33)",
+    "pass": true,
+    "info": "MVR 33"
+  },
+  {
+    "check": "device 2 hides the trip deleted on device 1",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "device 1 pulls device 2 trip on refocus",
+    "pass": true,
+    "info": "3"
+  },
+  {
+    "check": "user B sees 0 trips (row filter by user_id, as RLS enforces server-side)",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "user B's trip stored under user B only",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "owner-conflict sheet appears when another account signs in on a device with data",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "after discard, device 1 shows only user B's data (1 trip)",
+    "pass": true,
+    "info": "1"
+  },
+  {
+    "check": "user A's cloud rows untouched by the discard",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "sign out: badge Not signed in, local trips kept",
+    "pass": true,
+    "info": ""
+  }
+]

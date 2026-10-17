@@ -1,0 +1,232 @@
+[
+  {
+    "check": "7 preset routes with correct fares",
+    "pass": true,
+    "info": "['Ethere|MVR 30', \"Male' \u2192 Airport|MVR 70\", \"Male' \u2192 P1|MVR 85\", \"Male' \u2192 P2|MVR 100\", 'P1 \u2192 P2|MVR 40', 'P1 \u2192 Airport|MVR 80', 'P2 \u2192 Airport|MVR 85']"
+  },
+  {
+    "check": "gross = 70+30+100+5+10 = 215",
+    "pass": true,
+    "info": "215"
+  },
+  {
+    "check": "trip count = 3 (tips not counted)",
+    "pass": true,
+    "info": "3"
+  },
+  {
+    "check": "tips = 15",
+    "pass": true,
+    "info": "15"
+  },
+  {
+    "check": "target progress 21% of 1000",
+    "pass": true,
+    "info": "21%"
+  },
+  {
+    "check": "no achievement yet at 21%",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "custom tip 35 adds to earnings",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "custom tip does not add a trip",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "achievement overlay shown at 25%",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "achievement text correct",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "still visible after 1 tap",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "still visible after 2 taps",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "dismissed after exactly 3 taps",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "50%, 75%, 100% each shown once, in order",
+    "pass": true,
+    "info": "['50%', '75%', '100%']"
+  },
+  {
+    "check": "100% overlay gone, none repeated",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "no achievement re-fires after 100%",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "undo removes last trip",
+    "pass": true,
+    "info": "11"
+  },
+  {
+    "check": "history lists all 14 live entries (11 trips + 3 tips)",
+    "pass": true,
+    "info": 14
+  },
+  {
+    "check": "delete from history works",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "today excludes yesterday 23:59 MVT trip but includes 00:00:30 MVT trip (count 11)",
+    "pass": true,
+    "info": "11"
+  },
+  {
+    "check": "history still shows yesterday (two day groups)",
+    "pass": true,
+    "info": 2
+  },
+  {
+    "check": "data survives reload (autosave)",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "legacy v2 import succeeded (30 records)",
+    "pass": true,
+    "info": "Imported 30 records (30 new)"
+  },
+  {
+    "check": "legacy import keeps preset route directions (Male' \u2192 P1 still present)",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "history grows by 30 after import",
+    "pass": true,
+    "info": 45
+  },
+  {
+    "check": "imported day totals MVR 1,310 / 24 trips",
+    "pass": true,
+    "info": "Sat, 10 Oct24 trips \u00b7 MVR 1,310 (tips 50)21:07In \u2192 In30\u00d721:07Male' \u2192 Hulhule70\u00d720:46In \u2192 In30\u00d720:45P1 \u2192 Hulhule80\u00d720:30M"
+  },
+  {
+    "check": "export is v3 with all 45 live + 2 deleted records",
+    "pass": true,
+    "info": 47
+  },
+  {
+    "check": "export round-trips through parser",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "custom route appears on Today",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "edited fare persists after reload",
+    "pass": true,
+    "info": "MVR 35"
+  },
+  {
+    "check": "custom route persists after reload",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "target updates to 2,000",
+    "pass": true,
+    "info": "2,000"
+  },
+  {
+    "check": "light theme sets data-theme",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "light theme background is light",
+    "pass": true,
+    "info": "rgb(238, 244, 246)"
+  },
+  {
+    "check": "dark theme background is dark",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "no warning at 60 km/h",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "warning shown at 82 km/h with text",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "one tap dismisses warning",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "no repeat while still above threshold",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "warning re-arms after slowing below 70 then speeding again",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "GPS speed displayed",
+    "pass": true,
+    "info": "85"
+  },
+  {
+    "check": "RPM shows dash with mic off (never fabricated)",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "badge says Local only when Supabase unconfigured",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "Powered by Kuda Isse present",
+    "pass": true,
+    "info": ""
+  },
+  {
+    "check": "no horizontal overflow at 390px",
+    "pass": true,
+    "info": "390>390"
+  },
+  {
+    "check": "no JavaScript errors in console",
+    "pass": true,
+    "info": ""
+  }
+]

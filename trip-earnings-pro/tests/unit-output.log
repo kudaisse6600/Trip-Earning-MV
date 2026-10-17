@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: preset routes and fares match the spec
+ok 1 - preset routes and fares match the spec
+  ---
+  duration_ms: 1.684313
+  type: 'test'
+  ...
+# Subtest: dayKey uses Maldives time (UTC+5), midnight boundary
+ok 2 - dayKey uses Maldives time (UTC+5), midnight boundary
+  ---
+  duration_ms: 0.398795
+  type: 'test'
+  ...
+# Subtest: tips increase earnings but never trip count; midnight reset preserves history
+ok 3 - tips increase earnings but never trip count; midnight reset preserves history
+  ---
+  duration_ms: 4.127141
+  type: 'test'
+  ...
+# Subtest: custom tip amount works
+ok 4 - custom tip amount works
+  ---
+  duration_ms: 0.213241
+  type: 'test'
+  ...
+# Subtest: target progress and achievements fire once per threshold, in order
+ok 5 - target progress and achievements fire once per threshold, in order
+  ---
+  duration_ms: 0.273492
+  type: 'test'
+  ...
+# Subtest: speed warning shows once at 80 km/h and re-arms only below 70
+ok 6 - speed warning shows once at 80 km/h and re-arms only below 70
+  ---
+  duration_ms: 0.119295
+  type: 'test'
+  ...
+# Subtest: legacy v2 backup imports: 30 records, legacy names normalised, tip pseudo-routes dropped
+ok 7 - legacy v2 backup imports: 30 records, legacy names normalised, tip pseudo-routes dropped
+  ---
+  duration_ms: 0.591413
+  type: 'test'
+  ...
+# Subtest: export then import round-trips
+ok 8 - export then import round-trips
+  ---
+  duration_ms: 0.410272
+  type: 'test'
+  ...
+# Subtest: parseBackup rejects garbage
+ok 9 - parseBackup rejects garbage
+  ---
+  duration_ms: 0.562587
+  type: 'test'
+  ...
+# Subtest: mergeById: last write wins, deletes propagate
+ok 10 - mergeById: last write wins, deletes propagate
+  ---
+  duration_ms: 0.54237
+  type: 'test'
+  ...
+# Subtest: rpm conversion is honest arithmetic only
+ok 11 - rpm conversion is honest arithmetic only
+  ---
+  duration_ms: 0.194444
+  type: 'test'
+  ...
+# Subtest: daily series and route breakdown
+ok 12 - daily series and route breakdown
+  ---
+  duration_ms: 0.297096
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 76.91704

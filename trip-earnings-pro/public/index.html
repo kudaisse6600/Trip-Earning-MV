@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trip Earnings Pro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Taxi trip and tip tracker for Male' drivers. Offline first, syncs to your own Supabase account.">
+<meta name="theme-color" content="#0b1620">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;700&family=Nunito+Sans:wght@400;600;700&family=Chakra+Petch:wght@600;700&display=swap">
+<style>
+/* Layout: one-screen app shell — sticky status bar, scrolling view, fixed bottom nav. Dark-first: it is used at night, in a car. */
+:root{
+  --bg:#0b1620; --panel:#122332; --panel-2:#1a3042; --line:#22394c;
+  --fg:#e8f1f5; --muted:#8aa3b1;
+  --accent:#2ad4c3; --accent-ink:#06201d; --gold:#f5b942; --danger:#ff6b57; --good:#4cd98a;
+  --font-display:"Sora",system-ui,sans-serif;
+  --font-body:"Nunito Sans",system-ui,sans-serif;
+  --font-num:"Chakra Petch","Sora",system-ui,monospace;
+  --nav-h:64px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#eef4f6; --panel:#ffffff; --panel-2:#e3edf1; --line:#cddbe2;
+  --fg:#0f2230; --muted:#5a7484;
+  --accent:#0f9d8f; --accent-ink:#ffffff; --gold:#c98a09; --danger:#d9432f; --good:#1e9b55;
+  color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#eef4f6; --panel:#ffffff; --panel-2:#e3edf1; --line:#cddbe2;
+  --fg:#0f2230; --muted:#5a7484;
+  --accent:#0f9d8f; --accent-ink:#ffffff; --gold:#c98a09; --danger:#d9432f; --good:#1e9b55;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 var(--font-body);-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,select{font:inherit;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+[hidden]{display:none!important}
+
+/* status bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand svg{width:28px;height:28px;flex:none}
+.brand h1{font-size:17px;white-space:nowrap}
+.sync{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--line);white-space:nowrap}
+.sync .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.sync[data-s="synced"] .dot,.sync[data-s="online"] .dot{background:var(--good)}
+.sync[data-s="syncing"] .dot{background:var(--gold);animation:pulse 1s infinite}
+.sync[data-s="offline"] .dot{background:var(--muted)}
+.sync[data-s="error"] .dot{background:var(--danger)}
+@keyframes pulse{50%{opacity:.3}}
+
+/* views */
+main{padding-block:16px calc(var(--nav-h) + 24px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.view{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.row>*{min-width:0}
+
+/* dashboard */
+.hero{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+.hero .big{font-size:44px;line-height:1;font-weight:700}
+.hero .big small{font-size:16px;color:var(--muted);font-family:var(--font-body);font-weight:600;margin-right:6px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.stat{background:var(--panel-2);border-radius:12px;padding:10px 12px}
+.stat .v{font-size:20px;font-weight:700}
+.stat .k{font-size:12px;color:var(--muted)}
+.target{margin-top:14px}
+.bar{height:10px;border-radius:999px;background:var(--panel-2);overflow:hidden;position:relative}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:999px;transition:width .4s}
+.bar b{position:absolute;top:-3px;width:2px;height:16px;background:var(--line)}
+.ring{width:84px;height:84px}
+.ring circle{fill:none;stroke-width:8}
+.ring .t{stroke:var(--panel-2)}
+.ring .p{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .4s}
+.ring text{fill:var(--fg);font:700 18px var(--font-num)}
+
+.routes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:520px){.routes{grid-template-columns:repeat(3,1fr)}}
+.route{display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;min-height:78px;text-align:left;transition:transform .08s,background .15s}
+.route:active{transform:scale(.97);background:var(--panel-2)}
+.route .n{font-weight:700;font-size:15px;line-height:1.2}
+.route .f{color:var(--accent);font-weight:700;font-size:20px}
+.tips{display:flex;gap:10px;flex-wrap:wrap}
+.tip{flex:1 1 90px;background:var(--panel-2);border:1px dashed var(--line);border-radius:14px;padding:12px;font-weight:700;color:var(--gold);text-align:center;min-height:54px}
+.tip:active{background:var(--panel)}
+.undo{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--panel-2);border-radius:12px;padding:10px 12px;font-size:14px}
+.undo button{color:var(--accent);font-weight:700}
+
+/* history */
+.day{display:flex;flex-direction:column;gap:6px}
+.day h3{font-size:14px;color:var(--muted);display:flex;justify-content:space-between;font-family:var(--font-body)}
+.entry{display:grid;grid-template-columns:56px 1fr auto auto;gap:10px;align-items:center;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;font-size:15px}
+.entry.tipr{border-style:dashed}
+.entry .time{color:var(--muted);font-size:13px}
+.entry .amt{font-weight:700}
+.entry .del{color:var(--muted);padding:6px;font-size:18px;line-height:1}
+.entry .del:hover{color:var(--danger)}
+
+/* insights */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font:600 11px var(--font-body)}
+.chart .lbl{fill:var(--fg);font:700 11px var(--font-num)}
+.chart rect.b{fill:var(--accent)}
+.chart rect.t{fill:var(--gold)}
+.chart line{stroke:var(--line)}
+.chart .tgt{stroke:var(--gold);stroke-dasharray:4 4}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.breakdown{display:flex;flex-direction:column;gap:8px}
+.breakdown .r{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:14px}
+.breakdown .bar{height:6px;margin-top:4px;grid-column:1/-1}
+.breakdown .bar i{background:var(--accent)}
+
+/* drive */
+.speedo{text-align:center;padding-block:10px}
+.speedo .v{font-size:88px;line-height:1;font-weight:700}
+.speedo .u{color:var(--muted);font-weight:700}
+.speedo.hot .v{color:var(--danger)}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.toggle:first-of-type{border-top:0}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.sw[aria-checked="true"]{background:var(--accent)}
+.sw[aria-checked="true"]::after{transform:translateX(20px);background:var(--accent-ink)}
+.rpm .v{font-size:56px;font-weight:700;line-height:1}
+.note{font-size:13px;color:var(--muted);line-height:1.5}
+.note b{color:var(--fg)}
+details summary{cursor:pointer;font-weight:700;color:var(--accent)}
+
+/* settings */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:700;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;font-weight:700;background:var(--panel-2);border:1px solid var(--line);min-height:44px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.danger{color:var(--danger)}
+.btn.block{width:100%}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+.btnrow .btn{flex:1 1 140px}
+.routelist{display:flex;flex-direction:column;gap:8px}
+.routelist .entry{grid-template-columns:1fr auto auto}
+.acct{display:flex;align-items:center;gap:12px}
+.acct img{width:40px;height:40px;border-radius:50%}
+.pill{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--panel-2);color:var(--muted)}
+.pill.ok{color:var(--good)}
+.pill.bad{color:var(--danger)}
+code{font-family:var(--font-num);font-size:13px;background:var(--panel-2);padding:1px 6px;border-radius:6px;word-break:break-all}
+.footer{text-align:center;color:var(--muted);font-size:13px;padding-block:8px}
+.footer b{color:var(--fg)}
+
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px))}
+nav button{flex:1;height:var(--nav-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:700;color:var(--muted)}
+nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav button[aria-current="page"]{color:var(--accent)}
+
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));background:rgba(4,12,18,.86);backdrop-filter:blur(6px)}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.sheet h2{font-size:20px}
+.full{flex-direction:column;text-align:center;gap:18px;color:#fff;user-select:none}
+.full.ach{background:radial-gradient(circle at 50% 30%,#16645c,#0b1620 70%)}
+.full.warn{background:radial-gradient(circle at 50% 40%,#7a1d12,#1a0603 75%)}
+.full h2{font-size:clamp(28px,8vw,44px);line-height:1.15;max-width:22ch}
+.full p{font-size:18px;max-width:30ch;margin:0;line-height:1.5}
+.full .pctv{font-family:var(--font-num);font-size:96px;line-height:1;font-weight:700;color:var(--gold)}
+.full .taps{display:flex;gap:14px}
+.full .taps i{width:18px;height:18px;border-radius:50%;border:2px solid #fff;display:block}
+.full .taps i.on{background:#fff}
+.full .hint{font-size:14px;opacity:.8}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;font-size:14px;z-index:60;max-width:90vw;text-align:center}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--panel-2)"/><path d="M6 19c3-2 5-2 8 0s5 2 8 0 3-1 4 0" stroke="var(--accent)" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M9 14l2-4h10l2 4" stroke="var(--gold)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>Trip Earnings Pro</h1>
+  </div>
+  <button class="sync" id="syncBadge" data-s="offline" aria-live="polite"><span class="dot"></span><span id="syncText">Local only</span></button>
+</header>
+
+<main>
+  <!-- TODAY -->
+  <section class="view" id="view-today">
+    <div class="card">
+      <div class="hero">
+        <div>
+          <div class="eyebrow" id="todayLabel">Today</div>
+          <div class="big num"><small>MVR</small><span id="todayGross">0</span></div>
+        </div>
+        <svg class="ring" viewBox="0 0 84 84" aria-label="Target progress">
+          <circle class="t" cx="42" cy="42" r="36"/>
+          <circle class="p" id="ringP" cx="42" cy="42" r="36" transform="rotate(-90 42 42)" stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
+          <text x="42" y="48" text-anchor="middle" id="ringTxt">0%</text>
+        </svg>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v num" id="todayTrips">0</div><div class="k">trips</div></div>
+        <div class="stat"><div class="v num" id="todayTips">0</div><div class="k">tips (MVR)</div></div>
+        <div class="stat"><div class="v num" id="todayFares">0</div><div class="k">fares (MVR)</div></div>
+      </div>
+      <div class="target">
+        <div class="row" style="font-size:13px"><span class="muted">Daily target</span><span class="num"><b id="targetTxt">1000</b> MVR · <span id="remainTxt">1000 to go</span></span></div>
+        <div class="bar" style="margin-top:6px"><i id="barFill" style="width:0%"></i><b style="left:25%"></b><b style="left:50%"></b><b style="left:75%"></b></div>
+      </div>
+    </div>
+
+    <div class="undo" id="undoBox" hidden><span id="undoText"></span><button id="undoBtn">Undo</button></div>
+
+    <div>
+      <div class="row" style="margin-bottom:8px"><span class="eyebrow">Tap a route to add a trip</span><button class="pill" id="editRoutesBtn">Edit routes</button></div>
+      <div class="routes" id="routeGrid"></div>
+    </div>
+
+    <div>
+      <div class="eyebrow" style="margin-bottom:8px">Tips (earnings only, not a trip)</div>
+      <div class="tips" id="tipRow"></div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="view" id="view-history" hidden>
+    <div class="row"><h2 style="font-size:20px">History</h2><span class="muted" id="histCount"></span></div>
+    <div id="histList" style="display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section class="view" id="view-insights" hidden>
+    <h2 style="font-size:20px">Insights</h2>
+    <div class="card">
+      <div class="row"><span class="eyebrow">Last 14 days</span><div class="legend"><span><i style="background:var(--accent)"></i>Fares</span><span><i style="background:var(--gold)"></i>Tips</span></div></div>
+      <svg class="chart" id="chart14" viewBox="0 0 360 180" role="img" aria-label="Earnings for the last 14 days"></svg>
+    </div>
+    <div class="stats" style="margin:0">
+      <div class="stat"><div class="v num" id="ins7">0</div><div class="k">7-day total</div></div>
+      <div class="stat"><div class="v num" id="ins30">0</div><div class="k">30-day total</div></div>
+      <div class="stat"><div class="v num" id="insAvg">0</div><div class="k">avg / active day</div></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:10px">Routes, last 30 days</div>
+      <div class="breakdown" id="breakdown"></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:10px">Best hours (trips started)</div>
+      <svg class="chart" id="chartHours" viewBox="0 0 360 120" role="img" aria-label="Trips by hour of day"></svg>
+    </div>
+  </section>
+
+  <!-- DRIVE -->
+  <section class="view" id="view-drive" hidden>
+    <h2 style="font-size:20px">Drive</h2>
+    <div class="card speedo" id="speedo">
+      <div class="eyebrow">GPS speed</div>
+      <div class="v num" id="speedVal">—</div>
+      <div class="u">km/h · <span id="speedAcc">GPS off</span></div>
+    </div>
+    <div class="card">
+      <div class="toggle"><div><b>Drive mode</b><div class="note">Reads GPS speed and keeps the screen awake. Shows the safety warning at 80 km/h.</div></div><button class="sw" id="driveSw" role="switch" aria-checked="false" aria-label="Drive mode"></button></div>
+      <div class="toggle"><div><b>Acoustic RPM estimate</b><div class="note">Listens for the engine's firing frequency through the microphone.</div></div><button class="sw" id="rpmSw" role="switch" aria-checked="false" aria-label="RPM estimate"></button></div>
+    </div>
+    <div class="card rpm">
+      <div class="row"><div class="eyebrow">Estimated RPM</div><span class="pill" id="rpmConf">mic off</span></div>
+      <div class="v num" id="rpmVal">—</div>
+      <div class="field" style="margin-top:10px"><label for="cylSel">Engine cylinders (needed for the maths)</label>
+        <select id="cylSel"><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option><option value="8">8</option></select></div>
+      <details style="margin-top:10px"><summary>How this works and what it can't do</summary>
+        <div class="note" style="margin-top:8px">
+          <p>Phones have no link to the engine computer, so a true RPM reading is impossible from a browser. This estimate finds the strongest repeating low-frequency sound in the cabin and converts it with <b>RPM = firings/s × 120 ÷ cylinders</b>. It only shows a number when the signal is clearly periodic; otherwise it shows a dash rather than guessing.</p>
+          <p><b>Hybrid vehicles:</b> when the petrol engine is off, there is no firing sound and no RPM exists to measure. The electric motor's whine is not engine RPM, and the estimator will usually show nothing or an unrelated value. Treat it as unavailable in EV mode.</p>
+          <p>Road noise, music, air-con and the phone's position all affect it. Expect it to be rough at best, and never use it for anything that matters.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings" hidden>
+    <h2 style="font-size:20px">Settings</h2>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Account &amp; cloud sync</div>
+      <div id="acctSignedOut">
+        <div class="note" id="cloudNote">Sign in with Google to back up every trip to your own Supabase project and restore it on any device.</div>
+        <div class="btnrow" style="margin-top:12px">
+          <button class="btn primary" id="signInBtn">Sign in with Google</button>
+          <button class="btn" id="setupBtn">Supabase setup</button>
+        </div>
+      </div>
+      <div id="acctSignedIn" hidden>
+        <div class="acct"><img id="acctImg" alt="" hidden><div style="min-width:0"><b id="acctName"></b><div class="note" id="acctEmail"></div></div></div>
+        <div class="row" style="margin-top:10px;font-size:13px"><span class="muted">Last synced</span><span id="lastSync">never</span></div>
+        <div class="row" style="font-size:13px"><span class="muted">Pending changes</span><span id="pendingCount" class="num">0</span></div>
+        <div class="btnrow" style="margin-top:12px">
+          <button class="btn" id="syncNowBtn">Sync now</button>
+          <button class="btn" id="signOutBtn">Sign out</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Daily target</div>
+      <div class="field"><label for="targetIn">Target per day (MVR)</label><input id="targetIn" type="number" inputmode="numeric" min="1" step="10"></div>
+      <div class="toggle"><div><b>Achievement screens</b><div class="note">At 25 / 50 / 75 / 100 % of the target.</div></div><button class="sw" id="celebSw" role="switch" aria-checked="true"></button></div>
+      <div class="toggle"><div><b>Vibration</b><div class="note">Short buzz when a trip is added.</div></div><button class="sw" id="hapticSw" role="switch" aria-checked="true"></button></div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Appearance</div>
+      <div class="field"><label for="themeSel">Theme</label>
+        <select id="themeSel"><option value="system">Match device</option><option value="dark">Dark</option><option value="light">Light</option></select></div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Routes &amp; fares</div>
+      <div class="routelist" id="routeList"></div>
+      <button class="btn block" id="addRouteBtn">+ Add custom route</button>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Backup</div>
+      <div class="note">Export a JSON backup of everything, or import one (including backups from the original Trip Earnings app). Imported records are merged; nothing is overwritten unless it is newer.</div>
+      <div class="btnrow">
+        <button class="btn" id="exportBtn">Export JSON</button>
+        <label class="btn" for="importIn" style="cursor:pointer">Import JSON<input id="importIn" type="file" accept="application/json,.json" hidden></label>
+      </div>
+      <div class="btnrow"><button class="btn" id="copyBtn">Copy backup to clipboard</button></div>
+      <button class="btn danger block" id="wipeBtn">Delete all data on this device</button>
+      <div class="row" style="font-size:13px"><span class="muted">Install as app</span><button class="pill" id="installBtn" hidden>Install</button><span id="installNote" class="muted">available from the browser menu</span></div>
+    </div>
+
+    <div class="footer">Powered by <b>Kuda Isse</b> · v<span id="verTxt">3.0.0</span></div>
+  </section>
+</main>
+
+<nav aria-label="Sections">
+  <button data-view="today" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></svg>Today</button>
+  <button data-view="history"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
+  <button data-view="insights"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Insights</button>
+  <button data-view="drive"><svg viewBox="0 0 24 24"><path d="M3 17l2-6h14l2 6M5 17v3M19 17v3M3 17h18M7 11l2-4h6l2 4"/></svg>Drive</button>
+  <button data-view="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+</nav>
+
+<!-- Achievement overlay: exactly three taps to dismiss -->
+<div class="overlay full ach" id="achOverlay" hidden role="dialog" aria-modal="true">
+  <div class="pctv" id="achPct">25%</div>
+  <h2>You’ve completed <span id="achPct2">25</span>%! Remember to thank Allah.</h2>
+  <p>Say Alhamdulillah three times.</p>
+  <div class="taps" aria-hidden="true"><i id="tap1"></i><i id="tap2"></i><i id="tap3"></i></div>
+  <div class="hint" id="achHint">Tap 3 times to continue</div>
+</div>
+
+<!-- Speed warning overlay: one tap -->
+<div class="overlay full warn" id="warnOverlay" hidden role="alertdialog" aria-modal="true">
+  <h2>YOUR LIFE IS IMPORTANT — PLEASE DRIVE SAFE</h2>
+  <p class="num" style="font-size:28px"><span id="warnSpeed">80</span> km/h</p>
+  <div class="hint">Tap once to dismiss</div>
+</div>
+
+<!-- Generic sheet -->
+<div class="overlay" id="sheetOverlay" hidden>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="core.js"></script>
+<script src="sync.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

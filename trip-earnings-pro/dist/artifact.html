@@ -1,0 +1,1284 @@
+<title>Trip Earnings Pro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;700&family=Nunito+Sans:wght@400;600;700&family=Chakra+Petch:wght@600;700&display=swap">
+<style>
+/* Layout: one-screen app shell — sticky status bar, scrolling view, fixed bottom nav. Dark-first: it is used at night, in a car. */
+:root{
+  --bg:#0b1620; --panel:#122332; --panel-2:#1a3042; --line:#22394c;
+  --fg:#e8f1f5; --muted:#8aa3b1;
+  --accent:#2ad4c3; --accent-ink:#06201d; --gold:#f5b942; --danger:#ff6b57; --good:#4cd98a;
+  --font-display:"Sora",system-ui,sans-serif;
+  --font-body:"Nunito Sans",system-ui,sans-serif;
+  --font-num:"Chakra Petch","Sora",system-ui,monospace;
+  --nav-h:64px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#eef4f6; --panel:#ffffff; --panel-2:#e3edf1; --line:#cddbe2;
+  --fg:#0f2230; --muted:#5a7484;
+  --accent:#0f9d8f; --accent-ink:#ffffff; --gold:#c98a09; --danger:#d9432f; --good:#1e9b55;
+  color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#eef4f6; --panel:#ffffff; --panel-2:#e3edf1; --line:#cddbe2;
+  --fg:#0f2230; --muted:#5a7484;
+  --accent:#0f9d8f; --accent-ink:#ffffff; --gold:#c98a09; --danger:#d9432f; --good:#1e9b55;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 var(--font-body);-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,select{font:inherit;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+[hidden]{display:none!important}
+
+/* status bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand svg{width:28px;height:28px;flex:none}
+.brand h1{font-size:17px;white-space:nowrap}
+.sync{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--line);white-space:nowrap}
+.sync .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.sync[data-s="synced"] .dot,.sync[data-s="online"] .dot{background:var(--good)}
+.sync[data-s="syncing"] .dot{background:var(--gold);animation:pulse 1s infinite}
+.sync[data-s="offline"] .dot{background:var(--muted)}
+.sync[data-s="error"] .dot{background:var(--danger)}
+@keyframes pulse{50%{opacity:.3}}
+
+/* views */
+main{padding-block:16px calc(var(--nav-h) + 24px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.view{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.row>*{min-width:0}
+
+/* dashboard */
+.hero{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+.hero .big{font-size:44px;line-height:1;font-weight:700}
+.hero .big small{font-size:16px;color:var(--muted);font-family:var(--font-body);font-weight:600;margin-right:6px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.stat{background:var(--panel-2);border-radius:12px;padding:10px 12px}
+.stat .v{font-size:20px;font-weight:700}
+.stat .k{font-size:12px;color:var(--muted)}
+.target{margin-top:14px}
+.bar{height:10px;border-radius:999px;background:var(--panel-2);overflow:hidden;position:relative}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:999px;transition:width .4s}
+.bar b{position:absolute;top:-3px;width:2px;height:16px;background:var(--line)}
+.ring{width:84px;height:84px}
+.ring circle{fill:none;stroke-width:8}
+.ring .t{stroke:var(--panel-2)}
+.ring .p{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .4s}
+.ring text{fill:var(--fg);font:700 18px var(--font-num)}
+
+.routes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:520px){.routes{grid-template-columns:repeat(3,1fr)}}
+.route{display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;min-height:78px;text-align:left;transition:transform .08s,background .15s}
+.route:active{transform:scale(.97);background:var(--panel-2)}
+.route .n{font-weight:700;font-size:15px;line-height:1.2}
+.route .f{color:var(--accent);font-weight:700;font-size:20px}
+.tips{display:flex;gap:10px;flex-wrap:wrap}
+.tip{flex:1 1 90px;background:var(--panel-2);border:1px dashed var(--line);border-radius:14px;padding:12px;font-weight:700;color:var(--gold);text-align:center;min-height:54px}
+.tip:active{background:var(--panel)}
+.undo{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--panel-2);border-radius:12px;padding:10px 12px;font-size:14px}
+.undo button{color:var(--accent);font-weight:700}
+
+/* history */
+.day{display:flex;flex-direction:column;gap:6px}
+.day h3{font-size:14px;color:var(--muted);display:flex;justify-content:space-between;font-family:var(--font-body)}
+.entry{display:grid;grid-template-columns:56px 1fr auto auto;gap:10px;align-items:center;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;font-size:15px}
+.entry.tipr{border-style:dashed}
+.entry .time{color:var(--muted);font-size:13px}
+.entry .amt{font-weight:700}
+.entry .del{color:var(--muted);padding:6px;font-size:18px;line-height:1}
+.entry .del:hover{color:var(--danger)}
+
+/* insights */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font:600 11px var(--font-body)}
+.chart .lbl{fill:var(--fg);font:700 11px var(--font-num)}
+.chart rect.b{fill:var(--accent)}
+.chart rect.t{fill:var(--gold)}
+.chart line{stroke:var(--line)}
+.chart .tgt{stroke:var(--gold);stroke-dasharray:4 4}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.breakdown{display:flex;flex-direction:column;gap:8px}
+.breakdown .r{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:14px}
+.breakdown .bar{height:6px;margin-top:4px;grid-column:1/-1}
+.breakdown .bar i{background:var(--accent)}
+
+/* drive */
+.speedo{text-align:center;padding-block:10px}
+.speedo .v{font-size:88px;line-height:1;font-weight:700}
+.speedo .u{color:var(--muted);font-weight:700}
+.speedo.hot .v{color:var(--danger)}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.toggle:first-of-type{border-top:0}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.sw[aria-checked="true"]{background:var(--accent)}
+.sw[aria-checked="true"]::after{transform:translateX(20px);background:var(--accent-ink)}
+.rpm .v{font-size:56px;font-weight:700;line-height:1}
+.note{font-size:13px;color:var(--muted);line-height:1.5}
+.note b{color:var(--fg)}
+details summary{cursor:pointer;font-weight:700;color:var(--accent)}
+
+/* settings */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:700;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;font-weight:700;background:var(--panel-2);border:1px solid var(--line);min-height:44px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.danger{color:var(--danger)}
+.btn.block{width:100%}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+.btnrow .btn{flex:1 1 140px}
+.routelist{display:flex;flex-direction:column;gap:8px}
+.routelist .entry{grid-template-columns:1fr auto auto}
+.acct{display:flex;align-items:center;gap:12px}
+.acct img{width:40px;height:40px;border-radius:50%}
+.pill{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--panel-2);color:var(--muted)}
+.pill.ok{color:var(--good)}
+.pill.bad{color:var(--danger)}
+code{font-family:var(--font-num);font-size:13px;background:var(--panel-2);padding:1px 6px;border-radius:6px;word-break:break-all}
+.footer{text-align:center;color:var(--muted);font-size:13px;padding-block:8px}
+.footer b{color:var(--fg)}
+
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px))}
+nav button{flex:1;height:var(--nav-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:700;color:var(--muted)}
+nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav button[aria-current="page"]{color:var(--accent)}
+
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));background:rgba(4,12,18,.86);backdrop-filter:blur(6px)}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.sheet h2{font-size:20px}
+.full{flex-direction:column;text-align:center;gap:18px;color:#fff;user-select:none}
+.full.ach{background:radial-gradient(circle at 50% 30%,#16645c,#0b1620 70%)}
+.full.warn{background:radial-gradient(circle at 50% 40%,#7a1d12,#1a0603 75%)}
+.full h2{font-size:clamp(28px,8vw,44px);line-height:1.15;max-width:22ch}
+.full p{font-size:18px;max-width:30ch;margin:0;line-height:1.5}
+.full .pctv{font-family:var(--font-num);font-size:96px;line-height:1;font-weight:700;color:var(--gold)}
+.full .taps{display:flex;gap:14px}
+.full .taps i{width:18px;height:18px;border-radius:50%;border:2px solid #fff;display:block}
+.full .taps i.on{background:#fff}
+.full .hint{font-size:14px;opacity:.8}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;font-size:14px;z-index:60;max-width:90vw;text-align:center}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--panel-2)"/><path d="M6 19c3-2 5-2 8 0s5 2 8 0 3-1 4 0" stroke="var(--accent)" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M9 14l2-4h10l2 4" stroke="var(--gold)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>Trip Earnings Pro</h1>
+  </div>
+  <button class="sync" id="syncBadge" data-s="offline" aria-live="polite"><span class="dot"></span><span id="syncText">Local only</span></button>
+</header>
+
+<main><div class="card" style="border-color:var(--gold);margin:12px auto 0;max-width:720px;font-size:13px;line-height:1.5"><b>Demo copy on claude.ai.</b> Trips, tips, targets, achievements, history, insights and import/export all work here and stay in this browser. This host blocks GPS, the microphone and cloud sync, so Drive mode and Google sign-in only work on your own HTTPS deployment (see README.md: drag the <code>public/</code> folder onto Netlify Drop).</div>
+  <!-- TODAY -->
+  <section class="view" id="view-today">
+    <div class="card">
+      <div class="hero">
+        <div>
+          <div class="eyebrow" id="todayLabel">Today</div>
+          <div class="big num"><small>MVR</small><span id="todayGross">0</span></div>
+        </div>
+        <svg class="ring" viewBox="0 0 84 84" aria-label="Target progress">
+          <circle class="t" cx="42" cy="42" r="36"/>
+          <circle class="p" id="ringP" cx="42" cy="42" r="36" transform="rotate(-90 42 42)" stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
+          <text x="42" y="48" text-anchor="middle" id="ringTxt">0%</text>
+        </svg>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v num" id="todayTrips">0</div><div class="k">trips</div></div>
+        <div class="stat"><div class="v num" id="todayTips">0</div><div class="k">tips (MVR)</div></div>
+        <div class="stat"><div class="v num" id="todayFares">0</div><div class="k">fares (MVR)</div></div>
+      </div>
+      <div class="target">
+        <div class="row" style="font-size:13px"><span class="muted">Daily target</span><span class="num"><b id="targetTxt">1000</b> MVR · <span id="remainTxt">1000 to go</span></span></div>
+        <div class="bar" style="margin-top:6px"><i id="barFill" style="width:0%"></i><b style="left:25%"></b><b style="left:50%"></b><b style="left:75%"></b></div>
+      </div>
+    </div>
+
+    <div class="undo" id="undoBox" hidden><span id="undoText"></span><button id="undoBtn">Undo</button></div>
+
+    <div>
+      <div class="row" style="margin-bottom:8px"><span class="eyebrow">Tap a route to add a trip</span><button class="pill" id="editRoutesBtn">Edit routes</button></div>
+      <div class="routes" id="routeGrid"></div>
+    </div>
+
+    <div>
+      <div class="eyebrow" style="margin-bottom:8px">Tips (earnings only, not a trip)</div>
+      <div class="tips" id="tipRow"></div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="view" id="view-history" hidden>
+    <div class="row"><h2 style="font-size:20px">History</h2><span class="muted" id="histCount"></span></div>
+    <div id="histList" style="display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section class="view" id="view-insights" hidden>
+    <h2 style="font-size:20px">Insights</h2>
+    <div class="card">
+      <div class="row"><span class="eyebrow">Last 14 days</span><div class="legend"><span><i style="background:var(--accent)"></i>Fares</span><span><i style="background:var(--gold)"></i>Tips</span></div></div>
+      <svg class="chart" id="chart14" viewBox="0 0 360 180" role="img" aria-label="Earnings for the last 14 days"></svg>
+    </div>
+    <div class="stats" style="margin:0">
+      <div class="stat"><div class="v num" id="ins7">0</div><div class="k">7-day total</div></div>
+      <div class="stat"><div class="v num" id="ins30">0</div><div class="k">30-day total</div></div>
+      <div class="stat"><div class="v num" id="insAvg">0</div><div class="k">avg / active day</div></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:10px">Routes, last 30 days</div>
+      <div class="breakdown" id="breakdown"></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:10px">Best hours (trips started)</div>
+      <svg class="chart" id="chartHours" viewBox="0 0 360 120" role="img" aria-label="Trips by hour of day"></svg>
+    </div>
+  </section>
+
+  <!-- DRIVE -->
+  <section class="view" id="view-drive" hidden>
+    <h2 style="font-size:20px">Drive</h2>
+    <div class="card speedo" id="speedo">
+      <div class="eyebrow">GPS speed</div>
+      <div class="v num" id="speedVal">—</div>
+      <div class="u">km/h · <span id="speedAcc">GPS off</span></div>
+    </div>
+    <div class="card">
+      <div class="toggle"><div><b>Drive mode</b><div class="note">Reads GPS speed and keeps the screen awake. Shows the safety warning at 80 km/h.</div></div><button class="sw" id="driveSw" role="switch" aria-checked="false" aria-label="Drive mode"></button></div>
+      <div class="toggle"><div><b>Acoustic RPM estimate</b><div class="note">Listens for the engine's firing frequency through the microphone.</div></div><button class="sw" id="rpmSw" role="switch" aria-checked="false" aria-label="RPM estimate"></button></div>
+    </div>
+    <div class="card rpm">
+      <div class="row"><div class="eyebrow">Estimated RPM</div><span class="pill" id="rpmConf">mic off</span></div>
+      <div class="v num" id="rpmVal">—</div>
+      <div class="field" style="margin-top:10px"><label for="cylSel">Engine cylinders (needed for the maths)</label>
+        <select id="cylSel"><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option><option value="8">8</option></select></div>
+      <details style="margin-top:10px"><summary>How this works and what it can't do</summary>
+        <div class="note" style="margin-top:8px">
+          <p>Phones have no link to the engine computer, so a true RPM reading is impossible from a browser. This estimate finds the strongest repeating low-frequency sound in the cabin and converts it with <b>RPM = firings/s × 120 ÷ cylinders</b>. It only shows a number when the signal is clearly periodic; otherwise it shows a dash rather than guessing.</p>
+          <p><b>Hybrid vehicles:</b> when the petrol engine is off, there is no firing sound and no RPM exists to measure. The electric motor's whine is not engine RPM, and the estimator will usually show nothing or an unrelated value. Treat it as unavailable in EV mode.</p>
+          <p>Road noise, music, air-con and the phone's position all affect it. Expect it to be rough at best, and never use it for anything that matters.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings" hidden>
+    <h2 style="font-size:20px">Settings</h2>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Account &amp; cloud sync</div>
+      <div id="acctSignedOut">
+        <div class="note" id="cloudNote">Sign in with Google to back up every trip to your own Supabase project and restore it on any device.</div>
+        <div class="btnrow" style="margin-top:12px">
+          <button class="btn primary" id="signInBtn">Sign in with Google</button>
+          <button class="btn" id="setupBtn">Supabase setup</button>
+        </div>
+      </div>
+      <div id="acctSignedIn" hidden>
+        <div class="acct"><img id="acctImg" alt="" hidden><div style="min-width:0"><b id="acctName"></b><div class="note" id="acctEmail"></div></div></div>
+        <div class="row" style="margin-top:10px;font-size:13px"><span class="muted">Last synced</span><span id="lastSync">never</span></div>
+        <div class="row" style="font-size:13px"><span class="muted">Pending changes</span><span id="pendingCount" class="num">0</span></div>
+        <div class="btnrow" style="margin-top:12px">
+          <button class="btn" id="syncNowBtn">Sync now</button>
+          <button class="btn" id="signOutBtn">Sign out</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Daily target</div>
+      <div class="field"><label for="targetIn">Target per day (MVR)</label><input id="targetIn" type="number" inputmode="numeric" min="1" step="10"></div>
+      <div class="toggle"><div><b>Achievement screens</b><div class="note">At 25 / 50 / 75 / 100 % of the target.</div></div><button class="sw" id="celebSw" role="switch" aria-checked="true"></button></div>
+      <div class="toggle"><div><b>Vibration</b><div class="note">Short buzz when a trip is added.</div></div><button class="sw" id="hapticSw" role="switch" aria-checked="true"></button></div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Appearance</div>
+      <div class="field"><label for="themeSel">Theme</label>
+        <select id="themeSel"><option value="system">Match device</option><option value="dark">Dark</option><option value="light">Light</option></select></div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Routes &amp; fares</div>
+      <div class="routelist" id="routeList"></div>
+      <button class="btn block" id="addRouteBtn">+ Add custom route</button>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Backup</div>
+      <div class="note">Export a JSON backup of everything, or import one (including backups from the original Trip Earnings app). Imported records are merged; nothing is overwritten unless it is newer.</div>
+      <div class="btnrow">
+        <button class="btn" id="exportBtn">Export JSON</button>
+        <label class="btn" for="importIn" style="cursor:pointer">Import JSON<input id="importIn" type="file" accept="application/json,.json" hidden></label>
+      </div>
+      <div class="btnrow"><button class="btn" id="copyBtn">Copy backup to clipboard</button></div>
+      <button class="btn danger block" id="wipeBtn">Delete all data on this device</button>
+      <div class="row" style="font-size:13px"><span class="muted">Install as app</span><button class="pill" id="installBtn" hidden>Install</button><span id="installNote" class="muted">available from the browser menu</span></div>
+    </div>
+
+    <div class="footer">Powered by <b>Kuda Isse</b> · v<span id="verTxt">3.0.0</span></div>
+  </section>
+</main>
+
+<nav aria-label="Sections">
+  <button data-view="today" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></svg>Today</button>
+  <button data-view="history"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
+  <button data-view="insights"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Insights</button>
+  <button data-view="drive"><svg viewBox="0 0 24 24"><path d="M3 17l2-6h14l2 6M5 17v3M19 17v3M3 17h18M7 11l2-4h6l2 4"/></svg>Drive</button>
+  <button data-view="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+</nav>
+
+<!-- Achievement overlay: exactly three taps to dismiss -->
+<div class="overlay full ach" id="achOverlay" hidden role="dialog" aria-modal="true">
+  <div class="pctv" id="achPct">25%</div>
+  <h2>You’ve completed <span id="achPct2">25</span>%! Remember to thank Allah.</h2>
+  <p>Say Alhamdulillah three times.</p>
+  <div class="taps" aria-hidden="true"><i id="tap1"></i><i id="tap2"></i><i id="tap3"></i></div>
+  <div class="hint" id="achHint">Tap 3 times to continue</div>
+</div>
+
+<!-- Speed warning overlay: one tap -->
+<div class="overlay full warn" id="warnOverlay" hidden role="alertdialog" aria-modal="true">
+  <h2>YOUR LIFE IS IMPORTANT — PLEASE DRIVE SAFE</h2>
+  <p class="num" style="font-size:28px"><span id="warnSpeed">80</span> km/h</p>
+  <div class="hint">Tap once to dismiss</div>
+</div>
+
+<!-- Generic sheet -->
+<div class="overlay" id="sheetOverlay" hidden>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+
+<script>
+/* Trip Earnings Pro — core logic (pure functions, no DOM).
+   Loaded by the browser as a plain script and by Node tests via require(). */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.TECore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  const MALDIVES_OFFSET_MS = 5 * 60 * 60 * 1000; // UTC+5, no DST
+  const CURRENCY = 'MVR';
+  const ACHIEVEMENTS = [25, 50, 75, 100];
+  const SPEED_WARN_KMH = 80;
+  const SPEED_CLEAR_KMH = 70; // hysteresis so the warning doesn't flap
+
+  // Preset routes. Fares are editable; presets are seeded once.
+  const PRESET_ROUTES = [
+    { id: 'r6', from: "Male'", to: 'Airport', fare: 70 },
+    { id: 'r2', from: "Male'", to: 'P1', fare: 85 },
+    { id: 'r3', from: "Male'", to: 'P2', fare: 100 },
+    { id: 'r7', from: 'Ethere', to: '', fare: 30 },
+    { id: 'r1', from: 'P1', to: 'P2', fare: 40 },
+    { id: 'r4', from: 'P1', to: 'Airport', fare: 80 },
+    { id: 'r5', from: 'P2', to: 'Airport', fare: 85 },
+  ];
+  const PRESET_TIPS = [5, 10];
+
+  function uuid() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+    });
+  }
+
+  /** YYYY-MM-DD for a timestamp, in Maldives local time (UTC+5). */
+  function dayKey(ts) {
+    return new Date(ts + MALDIVES_OFFSET_MS).toISOString().slice(0, 10);
+  }
+
+  /** Epoch ms of the next Maldives midnight after ts. */
+  function nextMidnight(ts) {
+    const shifted = ts + MALDIVES_OFFSET_MS;
+    const dayStart = Math.floor(shifted / 86400000) * 86400000;
+    return dayStart + 86400000 - MALDIVES_OFFSET_MS;
+  }
+
+  function routeLabel(r) {
+    return r.to ? `${r.from} → ${r.to}` : r.from;
+  }
+
+  function makeTrip(route, now, pay) {
+    return {
+      id: uuid(), ts: now, from: route.from, to: route.to || '',
+      fare: Number(route.fare), extra: false, pay: pay || 'cash', note: '',
+      routeId: route.id || null, updatedAt: now, deleted: false,
+    };
+  }
+
+  function makeTip(amount, now, pay) {
+    return {
+      id: uuid(), ts: now, from: 'Tip', to: '', fare: Number(amount),
+      extra: true, pay: pay || 'cash', note: '', routeId: null,
+      updatedAt: now, deleted: false,
+    };
+  }
+
+  /** Totals for one day. Tips count toward earnings, never toward trips. */
+  function dayTotals(trips, key) {
+    let gross = 0, tips = 0, count = 0;
+    for (const t of trips) {
+      if (t.deleted || dayKey(t.ts) !== key) continue;
+      const f = Number(t.fare) || 0;
+      gross += f;
+      if (t.extra) tips += f; else count += 1;
+    }
+    return { gross, tips, fares: gross - tips, count };
+  }
+
+  function pct(gross, target) {
+    if (!target || target <= 0) return 0;
+    return Math.min(100, Math.floor((gross / target) * 100));
+  }
+
+  /** Which achievement thresholds are newly crossed (ascending). */
+  function newAchievements(percent, alreadyShown) {
+    const shown = new Set(alreadyShown || []);
+    return ACHIEVEMENTS.filter((a) => percent >= a && !shown.has(a));
+  }
+
+  /** Speed-warning state machine. Returns next state and whether to show. */
+  function speedStep(state, kmh) {
+    // state: { armed: bool } — armed means a warning may be shown.
+    if (kmh == null || Number.isNaN(kmh)) return { state, show: false };
+    if (state.armed && kmh >= SPEED_WARN_KMH) return { state: { armed: false }, show: true };
+    if (!state.armed && kmh < SPEED_CLEAR_KMH) return { state: { armed: true }, show: false };
+    return { state, show: false };
+  }
+
+  /** Per-day series for the last n days ending at `now`. */
+  function dailySeries(trips, now, n) {
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) {
+      const key = dayKey(now - i * 86400000);
+      out.push({ key, ...dayTotals(trips, key) });
+    }
+    return out;
+  }
+
+  function routeBreakdown(trips, fromTs, toTs) {
+    const map = new Map();
+    for (const t of trips) {
+      if (t.deleted || t.extra || t.ts < fromTs || t.ts > toTs) continue;
+      const label = routeLabel(t);
+      const e = map.get(label) || { label, count: 0, total: 0 };
+      e.count++; e.total += Number(t.fare) || 0;
+      map.set(label, e);
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }
+
+  /* ---------- Import / export ---------- */
+
+  function normalizeTrip(t) {
+    const extra = !!t.extra || t.from === 'Tip';
+    return {
+      id: String(t.id || uuid()),
+      ts: Number(t.ts) || Date.now(),
+      from: extra ? 'Tip' : String(t.from || ''),
+      to: extra ? '' : String(t.to || ''),
+      fare: Number(t.fare) || 0,
+      extra,
+      pay: t.pay || 'cash',
+      note: t.note || '',
+      routeId: t.routeId || t.route_id || null,
+      updatedAt: Number(t.updatedAt || t.updated_at) || Number(t.ts) || Date.now(),
+      deleted: !!t.deleted,
+    };
+  }
+
+  function normalizeRoute(r) {
+    // Legacy "In → In" was the old name for Ethere; "Hulhule" for Airport.
+    let from = String(r.from || ''), to = String(r.to || '');
+    if (from === 'In' && to === 'In') { from = 'Ethere'; to = ''; }
+    if (to === 'Hulhule') to = 'Airport';
+    if (from === 'Hulhule') from = 'Airport';
+    return {
+      id: String(r.id || uuid()), from, to, fare: Number(r.fare) || 0,
+      updatedAt: Number(r.updatedAt || r.updated_at) || Date.now(), deleted: !!r.deleted,
+    };
+  }
+
+  /**
+   * Parse a backup (v2 legacy "Trip Earnings" export or v3 Pro export).
+   * Returns { routes, trips, settings, celebrated } or throws.
+   */
+  function parseBackup(json) {
+    const d = typeof json === 'string' ? JSON.parse(json) : json;
+    if (!d || typeof d !== 'object' || !Array.isArray(d.trips)) throw new Error('Not a Trip Earnings backup');
+    const routes = (d.routes || [])
+      .filter((r) => !r.extra && r.from !== 'Extra') // legacy tip pseudo-routes become presets
+      .map(normalizeRoute);
+    const trips = d.trips.map(normalizeTrip);
+    const settings = d.settings && typeof d.settings === 'object' ? d.settings : {};
+    const celebrated = d.celebrated && typeof d.celebrated === 'object' ? d.celebrated : {};
+    return { version: Number(d.version) || 2, routes, trips, settings, celebrated };
+  }
+
+  function makeBackup(state, now) {
+    return {
+      version: 3, app: 'Trip Earnings Pro', currency: CURRENCY,
+      exportedAt: new Date(now).toISOString(),
+      routes: state.routes, trips: state.trips, settings: state.settings,
+      celebrated: state.celebrated || {},
+    };
+  }
+
+  /** Merge two record lists by id, last write (updatedAt) wins. */
+  function mergeById(local, remote) {
+    const map = new Map();
+    for (const r of local) map.set(r.id, r);
+    for (const r of remote) {
+      const cur = map.get(r.id);
+      if (!cur || (r.updatedAt || 0) >= (cur.updatedAt || 0)) map.set(r.id, r);
+    }
+    return [...map.values()].sort((a, b) => a.ts - b.ts || a.id.localeCompare(b.id));
+  }
+
+  /** RPM from a detected fundamental firing frequency (Hz). 4-stroke: firings/s = rpm/60 * cyl/2. */
+  function rpmFromFiringHz(hz, cylinders) {
+    if (!hz || !cylinders) return null;
+    return Math.round((hz * 60 * 2) / cylinders);
+  }
+
+  return {
+    MALDIVES_OFFSET_MS, CURRENCY, ACHIEVEMENTS, SPEED_WARN_KMH, SPEED_CLEAR_KMH,
+    PRESET_ROUTES, PRESET_TIPS, uuid, dayKey, nextMidnight, routeLabel,
+    makeTrip, makeTip, dayTotals, pct, newAchievements, speedStep, dailySeries,
+    routeBreakdown, parseBackup, makeBackup, mergeById, normalizeTrip, normalizeRoute,
+    rpmFromFiringHz,
+  };
+});
+
+</script>
+<script>
+/* Trip Earnings Pro — Supabase auth + sync layer.
+   Real Google OAuth through Supabase Auth; offline queue; last-write-wins merge.
+   Only the public anon key is ever used here. Row Level Security on the server
+   is what isolates users — see supabase/schema.sql. */
+(function (root) {
+  'use strict';
+  const C = root.TECore;
+  const CFG_KEY = 'tep.supabase';
+  const META_KEY = 'tep.syncmeta';
+  const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+
+  const listeners = new Set();
+  let client = null, user = null, status = 'offline', detail = '', timer = null, pulling = false, pushing = false;
+
+  function loadJSON(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function saveJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
+
+  function getConfig() { return loadJSON(CFG_KEY, null); }
+  function setConfig(cfg) { if (cfg) saveJSON(CFG_KEY, cfg); else localStorage.removeItem(CFG_KEY); }
+  function meta() { return loadJSON(META_KEY, { lastPull: 0, lastSync: 0, dirty: { trips: [], routes: [], profile: false }, owner: null }); }
+  function setMeta(m) { saveJSON(META_KEY, m); }
+
+  function emit() { for (const fn of listeners) fn({ status, detail, user, pending: pendingCount() }); }
+  function setStatus(s, d) { status = s; detail = d || ''; emit(); }
+  function onChange(fn) { listeners.add(fn); fn({ status, detail, user, pending: pendingCount() }); return () => listeners.delete(fn); }
+
+  function pendingCount() { const m = meta(); return m.dirty.trips.length + m.dirty.routes.length + (m.dirty.profile ? 1 : 0); }
+
+  /* Mark local records dirty. Called by the app on every change. */
+  function markDirty(table, id) {
+    const m = meta();
+    if (table === 'profile') m.dirty.profile = true;
+    else if (!m.dirty[table].includes(id)) m.dirty[table].push(id);
+    setMeta(m);
+    emit();
+    scheduleSync(800);
+  }
+
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      if (root.supabase) return res();
+      const s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = () => rej(new Error('Could not load supabase-js (offline or blocked)'));
+      document.head.appendChild(s);
+    });
+  }
+
+  let store = null; // set by init: { getState(), applyRemote(trips, routes, profile) }
+
+  async function init(st) {
+    store = st;
+    const cfg = getConfig();
+    if (!cfg || !cfg.url || !cfg.anonKey) { setStatus('unconfigured', 'Supabase not configured'); return; }
+    if (!navigator.onLine) { setStatus('offline', 'Offline'); }
+    try {
+      await loadScript(SUPABASE_JS);
+    } catch (e) { setStatus(navigator.onLine ? 'error' : 'offline', e.message); return; }
+    try {
+      client = root.supabase.createClient(cfg.url, cfg.anonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+    } catch (e) { setStatus('error', 'Bad Supabase URL or key'); return; }
+
+    client.auth.onAuthStateChange((_evt, session) => {
+      user = session ? session.user : null;
+      if (user) handleOwner(user.id); else setStatus(navigator.onLine ? 'signedout' : 'offline', 'Not signed in');
+    });
+    const { data } = await client.auth.getSession();
+    user = data && data.session ? data.session.user : null;
+    if (user) handleOwner(user.id); else setStatus(navigator.onLine ? 'signedout' : 'offline', 'Not signed in');
+
+    root.addEventListener('online', () => { setStatus(user ? 'online' : 'signedout', 'Back online'); scheduleSync(300); });
+    root.addEventListener('offline', () => setStatus('offline', 'Offline'));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleSync(500); });
+    setInterval(() => scheduleSync(0), 60000);
+  }
+
+  /* A device may hold local data from a different account. Let the app decide. */
+  function handleOwner(uid) {
+    const m = meta();
+    if (m.owner && m.owner !== uid && store.hasLocalData()) {
+      setStatus('conflict', 'Device holds data from another account');
+      store.onOwnerConflict(uid, (choice) => {
+        const mm = meta();
+        if (choice === 'discard') { store.replaceAll({ trips: [], routes: [] }); mm.dirty = { trips: [], routes: [], profile: false }; }
+        else { mm.dirty.trips = store.getState().trips.map((t) => t.id); mm.dirty.routes = store.getState().routes.map((r) => r.id); mm.dirty.profile = true; }
+        mm.owner = uid; mm.lastPull = 0; setMeta(mm);
+        setStatus('online', 'Signed in'); scheduleSync(0);
+      });
+      return;
+    }
+    if (!m.owner) {
+      // First sign-in on this device: everything local belongs to this user and must go up.
+      m.owner = uid; m.lastPull = 0;
+      m.dirty.trips = store.getState().trips.map((t) => t.id);
+      m.dirty.routes = store.getState().routes.map((r) => r.id);
+      m.dirty.profile = true;
+      setMeta(m);
+    }
+    setStatus(navigator.onLine ? 'online' : 'offline', 'Signed in');
+    scheduleSync(0);
+  }
+
+  function scheduleSync(ms) { clearTimeout(timer); timer = setTimeout(() => sync().catch(() => {}), ms); }
+
+  const toRow = {
+    trips: (t, uid) => ({ id: t.id, user_id: uid, ts: t.ts, from_loc: t.from, to_loc: t.to, fare: t.fare, extra: t.extra, pay: t.pay, note: t.note, route_id: t.routeId, updated_at: t.updatedAt, deleted: !!t.deleted }),
+    routes: (r, uid) => ({ id: r.id, user_id: uid, from_loc: r.from, to_loc: r.to, fare: r.fare, updated_at: r.updatedAt, deleted: !!r.deleted }),
+  };
+  const fromRow = {
+    trips: (r) => ({ id: r.id, ts: Number(r.ts), from: r.from_loc, to: r.to_loc || '', fare: Number(r.fare), extra: !!r.extra, pay: r.pay || 'cash', note: r.note || '', routeId: r.route_id, updatedAt: Number(r.updated_at), deleted: !!r.deleted }),
+    routes: (r) => ({ id: r.id, from: r.from_loc, to: r.to_loc || '', fare: Number(r.fare), updatedAt: Number(r.updated_at), deleted: !!r.deleted }),
+  };
+
+  async function sync() {
+    if (!client || !user || !navigator.onLine || pushing || pulling) return;
+    pushing = true;
+    setStatus('syncing', 'Syncing…');
+    try {
+      // PULL first, so a stale local copy never overwrites a newer remote row.
+      pulling = true;
+      const since = meta().lastPull;
+      const pullStart = Date.now();
+      const [tr, ro, pr] = await Promise.all([
+        client.from('trips').select('*').gt('updated_at', since),
+        client.from('routes').select('*').gt('updated_at', since),
+        client.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
+      ]);
+      if (tr.error) throw tr.error; if (ro.error) throw ro.error; if (pr.error) throw pr.error;
+      store.applyRemote(tr.data.map(fromRow.trips), ro.data.map(fromRow.routes), pr.data || null);
+      pulling = false;
+      // PUSH dirty records (after merge, so what goes up is the winning version).
+      const m = meta();
+      const st = store.getState();
+      for (const table of ['trips', 'routes']) {
+        const ids = new Set(m.dirty[table]);
+        if (!ids.size) continue;
+        const rows = st[table].filter((r) => ids.has(r.id)).map((r) => toRow[table](r, user.id));
+        if (rows.length) {
+          const { error } = await client.from(table).upsert(rows, { onConflict: table === 'routes' ? 'user_id,id' : 'id' });
+          if (error) throw error;
+        }
+        const mm = meta(); mm.dirty[table] = mm.dirty[table].filter((id) => !ids.has(id)); setMeta(mm);
+      }
+      if (m.dirty.profile) {
+        const { error } = await client.from('profiles').upsert({ user_id: user.id, settings: st.settings, celebrated: st.celebrated, updated_at: st.profileUpdatedAt || Date.now() }, { onConflict: 'user_id' });
+        if (error) throw error;
+        const mm = meta(); mm.dirty.profile = false; setMeta(mm);
+      }
+      { const mm = meta(); mm.lastPull = pullStart - 5000; mm.lastSync = Date.now(); setMeta(mm); }
+      setStatus('synced', 'Synced');
+    } catch (e) {
+      setStatus(navigator.onLine ? 'error' : 'offline', (e && e.message) || 'Sync failed');
+      throw e;
+    } finally { pushing = false; pulling = false; }
+  }
+
+  async function signIn() {
+    if (!client) throw new Error('Configure Supabase first');
+    const redirectTo = location.origin + location.pathname;
+    const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+    if (error) throw error;
+  }
+  async function signOut() {
+    if (!client) return;
+    await client.auth.signOut();
+    user = null;
+    setStatus('signedout', 'Signed out');
+  }
+
+  function lastSync() { return meta().lastSync; }
+  function resetMeta() { localStorage.removeItem(META_KEY); }
+
+  root.TESync = { init, onChange, markDirty, sync: () => sync(), signIn, signOut, getConfig, setConfig, lastSync, pendingCount, resetMeta, getUser: () => user, getStatus: () => ({ status, detail }) };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/* Trip Earnings Pro — UI and state. Depends on core.js and sync.js. */
+(function () {
+  'use strict';
+  const C = window.TECore, S = window.TESync;
+  const STATE_KEY = 'tep.state';
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => (Math.round(n * 100) / 100).toLocaleString('en-US');
+  const now = () => Date.now();
+
+  /* ---------------- state ---------------- */
+  const defaults = () => ({
+    routes: C.PRESET_ROUTES.map((r) => ({ ...r, updatedAt: 1, deleted: false })),
+    trips: [],
+    settings: { target: 1000, celebrate: true, haptics: true, theme: 'system', pay: 'cash', cylinders: 4 },
+    celebrated: {}, // dayKey -> [25, 50]
+    profileUpdatedAt: 1,
+  });
+  let state = load();
+  function load() {
+    try {
+      const raw = localStorage.getItem(STATE_KEY);
+      if (!raw) return defaults();
+      const s = JSON.parse(raw);
+      const d = defaults();
+      return { ...d, ...s, settings: { ...d.settings, ...(s.settings || {}) } };
+    } catch (e) { return defaults(); }
+  }
+  function save() {
+    try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (e) { toast('Could not save locally — storage is full or blocked'); }
+  }
+  function commit(table, id) { save(); S.markDirty(table, id); render(); }
+  function commitProfile() { state.profileUpdatedAt = now(); save(); S.markDirty('profile'); render(); }
+
+  const liveRoutes = () => state.routes.filter((r) => !r.deleted).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.from.localeCompare(b.from));
+  const liveTrips = () => state.trips.filter((t) => !t.deleted);
+
+  /* ---------------- actions ---------------- */
+  let lastAdded = null;
+  function addTrip(route) {
+    const t = C.makeTrip(route, now(), state.settings.pay);
+    state.trips.push(t); lastAdded = t;
+    buzz(30);
+    commit('trips', t.id);
+    showUndo(`${C.routeLabel(route)} · MVR ${fmt(t.fare)} added`);
+    checkAchievements();
+  }
+  function addTip(amount) {
+    if (!(amount > 0)) return;
+    const t = C.makeTip(amount, now(), state.settings.pay);
+    state.trips.push(t); lastAdded = t;
+    buzz(20);
+    commit('trips', t.id);
+    showUndo(`Tip MVR ${fmt(amount)} added`);
+    checkAchievements();
+  }
+  function deleteTrip(id) {
+    const t = state.trips.find((x) => x.id === id);
+    if (!t) return;
+    t.deleted = true; t.updatedAt = now();
+    commit('trips', id);
+    toast('Removed');
+  }
+  function undo() {
+    if (!lastAdded) return;
+    deleteTrip(lastAdded.id); lastAdded = null; $('undoBox').hidden = true;
+  }
+  let undoTimer;
+  function showUndo(text) {
+    $('undoText').textContent = text; $('undoBox').hidden = false;
+    clearTimeout(undoTimer); undoTimer = setTimeout(() => { $('undoBox').hidden = true; }, 8000);
+  }
+  function buzz(ms) { if (state.settings.haptics && navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} } }
+
+  /* ---------------- achievements (3 taps) ---------------- */
+  const achQueue = [];
+  let achTaps = 0, achOpen = false;
+  function checkAchievements() {
+    if (!state.settings.celebrate) return;
+    const key = C.dayKey(now());
+    const tot = C.dayTotals(state.trips, key);
+    const p = C.pct(tot.gross, state.settings.target);
+    const shown = state.celebrated[key] || [];
+    const fresh = C.newAchievements(p, shown);
+    if (!fresh.length) return;
+    state.celebrated[key] = [...shown, ...fresh];
+    Object.keys(state.celebrated).forEach((k) => { if (k < C.dayKey(now() - 7 * 86400000)) delete state.celebrated[k]; });
+    commitProfile();
+    achQueue.push(...fresh);
+    if (!achOpen) nextAch();
+  }
+  function nextAch() {
+    const p = achQueue.shift();
+    if (p == null) { achOpen = false; $('achOverlay').hidden = true; return; }
+    achOpen = true; achTaps = 0;
+    $('achPct').textContent = p + '%'; $('achPct2').textContent = p;
+    [1, 2, 3].forEach((i) => $('tap' + i).classList.remove('on'));
+    $('achHint').textContent = 'Tap 3 times to continue';
+    $('achOverlay').hidden = false;
+    buzz([60, 40, 60]);
+  }
+  $('achOverlay').addEventListener('click', () => {
+    achTaps++;
+    for (let i = 1; i <= 3; i++) $('tap' + i).classList.toggle('on', i <= achTaps);
+    const left = 3 - achTaps;
+    $('achHint').textContent = left > 0 ? `Tap ${left} more time${left === 1 ? '' : 's'}` : 'Alhamdulillah';
+    if (achTaps >= 3) setTimeout(nextAch, 250);
+  });
+
+  /* ---------------- speed warning (1 tap, no flapping) ---------------- */
+  let speedState = { armed: true };
+  function onSpeed(kmh) {
+    const r = C.speedStep(speedState, kmh);
+    speedState = r.state;
+    if (r.show) { $('warnSpeed').textContent = Math.round(kmh); $('warnOverlay').hidden = false; buzz([200, 100, 200]); }
+  }
+  $('warnOverlay').addEventListener('click', () => { $('warnOverlay').hidden = true; });
+
+  /* ---------------- render ---------------- */
+  function render() {
+    applyTheme();
+    const key = C.dayKey(now());
+    const tot = C.dayTotals(state.trips, key);
+    const target = state.settings.target || 0;
+    const p = C.pct(tot.gross, target);
+    $('todayLabel').textContent = 'Today · ' + fmtDay(key);
+    $('todayGross').textContent = fmt(tot.gross);
+    $('todayTrips').textContent = tot.count;
+    $('todayTips').textContent = fmt(tot.tips);
+    $('todayFares').textContent = fmt(tot.fares);
+    $('targetTxt').textContent = fmt(target);
+    $('remainTxt').textContent = tot.gross >= target ? 'target reached' : fmt(target - tot.gross) + ' to go';
+    $('barFill').style.width = p + '%';
+    $('ringP').style.strokeDashoffset = String(226.2 * (1 - p / 100));
+    $('ringTxt').textContent = p + '%';
+
+    // route grid
+    const grid = $('routeGrid'); grid.innerHTML = '';
+    for (const r of liveRoutes()) {
+      const b = document.createElement('button'); b.className = 'route'; b.type = 'button';
+      b.innerHTML = `<span class="n"></span><span class="f num"></span>`;
+      b.querySelector('.n').textContent = C.routeLabel(r);
+      b.querySelector('.f').textContent = 'MVR ' + fmt(r.fare);
+      b.addEventListener('click', () => addTrip(r));
+      grid.appendChild(b);
+    }
+    const tips = $('tipRow'); tips.innerHTML = '';
+    for (const a of C.PRESET_TIPS) {
+      const b = document.createElement('button'); b.className = 'tip num'; b.type = 'button'; b.textContent = '+ MVR ' + a;
+      b.addEventListener('click', () => addTip(a)); tips.appendChild(b);
+    }
+    const cb = document.createElement('button'); cb.className = 'tip'; cb.type = 'button'; cb.textContent = 'Custom tip…';
+    cb.addEventListener('click', customTipSheet); tips.appendChild(cb);
+
+    renderHistory(); renderInsights(); renderSettings();
+  }
+  function fmtDay(key) {
+    const d = new Date(key + 'T00:00:00Z');
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+  }
+  function fmtTime(ts) {
+    return new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Maldives' });
+  }
+
+  function renderHistory() {
+    const list = $('histList'); list.innerHTML = '';
+    const trips = liveTrips().sort((a, b) => b.ts - a.ts);
+    $('histCount').textContent = trips.length ? `${trips.filter((t) => !t.extra).length} trips · ${trips.filter((t) => t.extra).length} tips` : '';
+    if (!trips.length) { list.innerHTML = '<div class="card note">No trips yet. Tap a route on Today to add your first one.</div>'; return; }
+    const groups = new Map();
+    for (const t of trips) { const k = C.dayKey(t.ts); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(t); }
+    let shown = 0;
+    for (const [k, items] of groups) {
+      if (shown++ > 60) break;
+      const tot = C.dayTotals(items, k);
+      const day = document.createElement('div'); day.className = 'day';
+      const h = document.createElement('h3');
+      h.innerHTML = `<span></span><span class="num">${tot.count} trips · MVR ${fmt(tot.gross)}${tot.tips ? ` (tips ${fmt(tot.tips)})` : ''}</span>`;
+      h.firstChild.textContent = k === C.dayKey(now()) ? 'Today' : fmtDay(k);
+      day.appendChild(h);
+      for (const t of items) {
+        const e = document.createElement('div'); e.className = 'entry' + (t.extra ? ' tipr' : '');
+        e.innerHTML = `<span class="time num"></span><span class="n"></span><span class="amt num"></span><button class="del" aria-label="Remove">×</button>`;
+        e.querySelector('.time').textContent = fmtTime(t.ts);
+        e.querySelector('.n').textContent = t.extra ? 'Tip' : C.routeLabel(t);
+        e.querySelector('.amt').textContent = (t.extra ? '+' : '') + fmt(t.fare);
+        e.querySelector('.del').addEventListener('click', () => confirmSheet('Remove this entry?', `${t.extra ? 'Tip' : C.routeLabel(t)} · MVR ${fmt(t.fare)} at ${fmtTime(t.ts)}`, () => deleteTrip(t.id)));
+        day.appendChild(e);
+      }
+      list.appendChild(day);
+    }
+  }
+
+  function renderInsights() {
+    const n = now();
+    const s = C.dailySeries(state.trips, n, 14);
+    const target = state.settings.target || 0;
+    const max = Math.max(target, ...s.map((d) => d.gross), 1);
+    const W = 360, H = 180, padL = 36, padB = 22, padT = 10, cw = (W - padL - 8) / 14;
+    let svg = '';
+    const ticks = niceTicks(max);
+    for (const v of ticks) { const y = padT + (H - padT - padB) * (1 - v / max); svg += `<line x1="${padL}" x2="${W - 4}" y1="${y}" y2="${y}"/><text x="${padL - 6}" y="${y + 4}" text-anchor="end">${v >= 1000 ? (v / 1000) + 'k' : v}</text>`; }
+    if (target) { const y = padT + (H - padT - padB) * (1 - target / max); svg += `<line class="tgt" x1="${padL}" x2="${W - 4}" y1="${y}" y2="${y}"/>`; }
+    s.forEach((d, i) => {
+      const x = padL + i * cw + 3, bw = cw - 6;
+      const hF = (H - padT - padB) * (d.fares / max), hT = (H - padT - padB) * (d.tips / max);
+      const yF = H - padB - hF, yT = yF - hT;
+      if (d.fares) svg += `<rect class="b" x="${x}" y="${yF}" width="${bw}" height="${hF}" rx="2"/>`;
+      if (d.tips) svg += `<rect class="t" x="${x}" y="${yT}" width="${bw}" height="${hT}" rx="2"/>`;
+      if (i % 2 === 1 || i === 13) svg += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${d.key.slice(8)}</text>`;
+    });
+    $('chart14').innerHTML = svg;
+
+    const t7 = C.dailySeries(state.trips, n, 7).reduce((a, d) => a + d.gross, 0);
+    const s30 = C.dailySeries(state.trips, n, 30);
+    const t30 = s30.reduce((a, d) => a + d.gross, 0);
+    const active = s30.filter((d) => d.count > 0).length;
+    $('ins7').textContent = fmt(t7); $('ins30').textContent = fmt(t30); $('insAvg').textContent = active ? fmt(Math.round(t30 / active)) : '0';
+
+    const bd = C.routeBreakdown(state.trips, n - 30 * 86400000, n);
+    const bmax = bd.length ? bd[0].total : 1;
+    $('breakdown').innerHTML = bd.length ? '' : '<div class="note">No trips in the last 30 days.</div>';
+    for (const r of bd) {
+      const el = document.createElement('div'); el.className = 'r';
+      el.innerHTML = `<span></span><span class="num"></span><div class="bar"><i style="width:${(r.total / bmax) * 100}%"></i></div>`;
+      el.children[0].textContent = r.label; el.children[1].textContent = `${r.count} × · MVR ${fmt(r.total)}`;
+      $('breakdown').appendChild(el);
+    }
+
+    const hours = new Array(24).fill(0);
+    for (const t of liveTrips()) if (!t.extra) hours[new Date(t.ts + C.MALDIVES_OFFSET_MS).getUTCHours()]++;
+    const hmax = Math.max(1, ...hours);
+    let hs = ''; const hw = (W - 16) / 24;
+    hours.forEach((v, i) => { const h = 80 * (v / hmax); hs += `<rect class="b" x="${8 + i * hw + 1}" y="${90 - h}" width="${hw - 2}" height="${h}" rx="1" opacity="${v ? 1 : .15}"/>`; if (i % 6 === 0) hs += `<text x="${8 + i * hw + hw / 2}" y="110" text-anchor="middle">${String(i).padStart(2, '0')}</text>`; });
+    $('chartHours').innerHTML = hs;
+  }
+  function niceTicks(max) {
+    const step = max <= 500 ? 100 : max <= 1500 ? 250 : max <= 3000 ? 500 : 1000;
+    const out = []; for (let v = step; v <= max; v += step) out.push(v); return out;
+  }
+
+  function renderSettings() {
+    if (document.activeElement !== $('targetIn')) $('targetIn').value = state.settings.target;
+    $('celebSw').setAttribute('aria-checked', String(!!state.settings.celebrate));
+    $('hapticSw').setAttribute('aria-checked', String(!!state.settings.haptics));
+    $('themeSel').value = state.settings.theme || 'system';
+    $('cylSel').value = String(state.settings.cylinders || 4);
+    const rl = $('routeList'); rl.innerHTML = '';
+    for (const r of liveRoutes()) {
+      const e = document.createElement('div'); e.className = 'entry';
+      e.innerHTML = `<span class="n"></span><span class="amt num"></span><button class="del" aria-label="Edit">✎</button>`;
+      e.querySelector('.n').textContent = C.routeLabel(r); e.querySelector('.amt').textContent = 'MVR ' + fmt(r.fare);
+      e.querySelector('.del').addEventListener('click', () => routeSheet(r));
+      rl.appendChild(e);
+    }
+    const cfg = S.getConfig();
+    $('cloudNote').textContent = cfg ? 'Sign in with Google to back up every trip to your Supabase project and restore it on any device.' : 'Cloud sync needs a one-time Supabase setup (your own free project). Until then everything is saved on this device only.';
+    $('signInBtn').disabled = !cfg;
+  }
+
+  function applyTheme() {
+    const t = state.settings.theme || 'system';
+    if (t === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+    const dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = dark ? '#0b1620' : '#eef4f6';
+  }
+
+  /* ---------------- sheets (no alert/confirm/prompt) ---------------- */
+  function openSheet(html) { $('sheet').innerHTML = html; $('sheetOverlay').hidden = false; const f = $('sheet').querySelector('input,select,button'); if (f) setTimeout(() => f.focus(), 50); }
+  function closeSheet() { $('sheetOverlay').hidden = true; $('sheet').innerHTML = ''; }
+  $('sheetOverlay').addEventListener('click', (e) => { if (e.target === $('sheetOverlay')) closeSheet(); });
+
+  function confirmSheet(title, body, onYes, yesLabel) {
+    openSheet(`<h2></h2><div class="note"></div><div class="btnrow"><button class="btn" id="shNo">Cancel</button><button class="btn danger" id="shYes">${yesLabel || 'Remove'}</button></div>`);
+    $('sheet').querySelector('h2').textContent = title; $('sheet').querySelector('.note').textContent = body;
+    $('shNo').onclick = closeSheet; $('shYes').onclick = () => { closeSheet(); onYes(); };
+  }
+  function customTipSheet() {
+    openSheet(`<h2>Custom tip</h2><div class="field"><label for="tipIn">Amount (MVR)</label><input id="tipIn" type="number" inputmode="decimal" min="0.5" step="0.5" placeholder="e.g. 15"></div><div class="btnrow"><button class="btn" id="shNo">Cancel</button><button class="btn primary" id="shYes">Add tip</button></div>`);
+    $('shNo').onclick = closeSheet;
+    const go = () => { const v = parseFloat($('tipIn').value); if (!(v > 0)) { $('tipIn').focus(); return; } closeSheet(); addTip(v); };
+    $('shYes').onclick = go; $('tipIn').onkeydown = (e) => { if (e.key === 'Enter') go(); };
+  }
+  function routeSheet(route) {
+    const isNew = !route;
+    openSheet(`<h2>${isNew ? 'New route' : 'Edit route'}</h2>
+      <div class="field"><label for="rFrom">From (or a single name like “Ethere”)</label><input id="rFrom" placeholder="Male'"></div>
+      <div class="field"><label for="rTo">To (optional)</label><input id="rTo" placeholder="Airport"></div>
+      <div class="field"><label for="rFare">Fare (MVR)</label><input id="rFare" type="number" inputmode="decimal" min="0" step="5"></div>
+      <div class="btnrow"><button class="btn" id="shNo">Cancel</button>${isNew ? '' : '<button class="btn danger" id="shDel">Delete</button>'}<button class="btn primary" id="shYes">Save</button></div>`);
+    if (route) { $('rFrom').value = route.from; $('rTo').value = route.to || ''; $('rFare').value = route.fare; }
+    $('shNo').onclick = closeSheet;
+    if (!isNew) $('shDel').onclick = () => { closeSheet(); confirmSheet('Delete route?', `${C.routeLabel(route)} will be removed from the Today screen. Past trips keep their fares.`, () => { route.deleted = true; route.updatedAt = now(); commit('routes', route.id); }, 'Delete'); };
+    $('shYes').onclick = () => {
+      const from = $('rFrom').value.trim(), to = $('rTo').value.trim(), fare = parseFloat($('rFare').value);
+      if (!from || !(fare >= 0)) { toast('Enter a name and a fare'); return; }
+      if (isNew) { const r = { id: C.uuid(), from, to, fare, updatedAt: now(), deleted: false, order: liveRoutes().length }; state.routes.push(r); commit('routes', r.id); }
+      else { route.from = from; route.to = to; route.fare = fare; route.updatedAt = now(); commit('routes', route.id); }
+      closeSheet(); toast('Route saved');
+    };
+  }
+  function setupSheet() {
+    const cfg = S.getConfig() || {};
+    openSheet(`<h2>Supabase setup</h2>
+      <div class="note">Create a free project at supabase.com, run <code>supabase/schema.sql</code>, enable the Google provider, then paste the two public values from Project Settings → API. The anon key is designed to be public; your data is protected by Row Level Security, not by hiding this key.</div>
+      <div class="field"><label for="sbUrl">Project URL</label><input id="sbUrl" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off"></div>
+      <div class="field"><label for="sbKey">Anon (public) key</label><input id="sbKey" placeholder="eyJhbGciOi…" autocapitalize="off" autocorrect="off"></div>
+      <div class="btnrow"><button class="btn" id="shNo">Cancel</button>${cfg.url ? '<button class="btn danger" id="shClr">Remove</button>' : ''}<button class="btn primary" id="shYes">Save &amp; reload</button></div>`);
+    $('sbUrl').value = cfg.url || ''; $('sbKey').value = cfg.anonKey || '';
+    $('shNo').onclick = closeSheet;
+    if (cfg.url) $('shClr').onclick = () => { S.setConfig(null); S.resetMeta(); location.reload(); };
+    $('shYes').onclick = () => {
+      const url = $('sbUrl').value.trim().replace(/\/$/, ''), anonKey = $('sbKey').value.trim();
+      if (!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/.test(url) && !/^https:\/\//.test(url)) { toast('URL should look like https://xxxx.supabase.co'); return; }
+      if (anonKey.length < 20) { toast('That key looks too short'); return; }
+      S.setConfig({ url, anonKey }); location.reload();
+    };
+  }
+  function ownerConflictSheet(uid, done) {
+    openSheet(`<h2>Data from another account</h2>
+      <div class="note">This device already holds trips saved under a different Google account. What should happen to them?</div>
+      <div class="btnrow" style="flex-direction:column">
+        <button class="btn primary" id="shMerge">Keep them and add to my account</button>
+        <button class="btn danger" id="shDiscard">Discard them and load my cloud data</button>
+      </div>`);
+    $('shMerge').onclick = () => { closeSheet(); done('merge'); };
+    $('shDiscard').onclick = () => { closeSheet(); done('discard'); };
+  }
+
+  let toastTimer;
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
+
+  /* ---------------- import / export ---------------- */
+  function exportJSON() {
+    const json = JSON.stringify(C.makeBackup(state, now()), null, 2);
+    const name = `trip-earnings-pro-backup-${C.dayKey(now())}.json`;
+    try {
+      const blob = new Blob([json], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      toast('Backup downloaded (if downloads are blocked here, use Copy)');
+    } catch (e) { toast('Download blocked — use “Copy backup to clipboard”'); }
+  }
+  async function copyJSON() {
+    const json = JSON.stringify(C.makeBackup(state, now()));
+    try { await navigator.clipboard.writeText(json); toast('Backup copied'); }
+    catch (e) { openSheet(`<h2>Backup JSON</h2><div class="note">Select all and copy:</div><textarea id="bk" style="width:100%;height:200px;font:12px monospace;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:10px"></textarea><button class="btn block" id="shNo">Close</button>`); $('bk').value = json; $('bk').select(); $('shNo').onclick = closeSheet; }
+  }
+  function importJSON(file) {
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const b = C.parseBackup(String(rd.result));
+        const beforeT = liveTrips().length;
+        state.trips = C.mergeById(state.trips, b.trips);
+        // Legacy (v2) backups have no updatedAt: keep this device's routes and only add unknown ones.
+        const have = new Set(state.routes.map((r) => r.id));
+        const incoming = b.version >= 3 ? b.routes : b.routes.filter((r) => !have.has(r.id)).map((r) => ({ ...r, updatedAt: now() }));
+        state.routes = C.mergeById(state.routes, incoming);
+        if (b.settings && b.settings.target) state.settings.target = Number(b.settings.target);
+        if (b.version >= 3 && b.celebrated) state.celebrated = { ...state.celebrated, ...b.celebrated };
+        save();
+        for (const t of b.trips) S.markDirty('trips', t.id);
+        for (const r of incoming) S.markDirty('routes', r.id);
+        S.markDirty('profile');
+        render();
+        toast(`Imported ${b.trips.length} records (${liveTrips().length - beforeT} new)`);
+      } catch (e) { toast('Import failed: ' + e.message); }
+    };
+    rd.readAsText(file);
+  }
+
+  /* ---------------- GPS + wake lock ---------------- */
+  let geoWatch = null, wakeLock = null;
+  async function setDrive(on) {
+    $('driveSw').setAttribute('aria-checked', String(on));
+    if (on) {
+      if (!navigator.geolocation) { toast('GPS not available in this browser'); return setDrive(false); }
+      geoWatch = navigator.geolocation.watchPosition((pos) => {
+        const mps = pos.coords.speed;
+        const kmh = mps == null || Number.isNaN(mps) ? null : mps * 3.6;
+        $('speedVal').textContent = kmh == null ? '—' : String(Math.round(kmh));
+        $('speedAcc').textContent = kmh == null ? 'no speed fix yet' : `±${Math.round(pos.coords.accuracy)} m`;
+        $('speedo').classList.toggle('hot', kmh != null && kmh >= C.SPEED_WARN_KMH);
+        onSpeed(kmh);
+      }, (err) => { toast('GPS: ' + err.message); setDrive(false); }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 });
+      try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { /* optional */ }
+      $('speedAcc').textContent = 'waiting for GPS…';
+    } else {
+      if (geoWatch != null) navigator.geolocation.clearWatch(geoWatch); geoWatch = null;
+      if (wakeLock) { try { await wakeLock.release(); } catch (e) {} wakeLock = null; }
+      $('speedVal').textContent = '—'; $('speedAcc').textContent = 'GPS off'; $('speedo').classList.remove('hot');
+      speedState = { armed: true };
+    }
+  }
+
+  /* ---------------- acoustic RPM (honest: dash unless clearly periodic) ---------------- */
+  let audioCtx = null, mic = null, rpmRaf = null;
+  async function setRpm(on) {
+    $('rpmSw').setAttribute('aria-checked', String(on));
+    if (on) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('Microphone not available here'); return setRpm(false); }
+      try {
+        mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const src = audioCtx.createMediaStreamSource(mic);
+        const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 400;
+        const an = audioCtx.createAnalyser(); an.fftSize = 8192;
+        src.connect(lp); lp.connect(an);
+        const buf = new Float32Array(an.fftSize);
+        const sr = audioCtx.sampleRate;
+        let smooth = null;
+        const tick = () => {
+          an.getFloatTimeDomainData(buf);
+          const res = detectPeriod(buf, sr, 15, 220); // engine firing band 15–220 Hz
+          if (res && res.conf > 0.6 && res.rms > 0.01) {
+            const rpm = C.rpmFromFiringHz(res.hz, state.settings.cylinders || 4);
+            smooth = smooth == null ? rpm : Math.round(smooth * 0.8 + rpm * 0.2);
+            $('rpmVal').textContent = String(Math.round(smooth / 10) * 10);
+            $('rpmConf').textContent = `${Math.round(res.conf * 100)}% periodic`; $('rpmConf').className = 'pill ok';
+          } else {
+            smooth = null; $('rpmVal').textContent = '—';
+            $('rpmConf').textContent = res && res.rms <= 0.01 ? 'too quiet' : 'no clear engine tone'; $('rpmConf').className = 'pill';
+          }
+          rpmRaf = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch (e) { toast('Microphone: ' + e.message); setRpm(false); }
+    } else {
+      if (rpmRaf) cancelAnimationFrame(rpmRaf); rpmRaf = null;
+      if (mic) mic.getTracks().forEach((t) => t.stop()); mic = null;
+      if (audioCtx) { try { await audioCtx.close(); } catch (e) {} audioCtx = null; }
+      $('rpmVal').textContent = '—'; $('rpmConf').textContent = 'mic off'; $('rpmConf').className = 'pill';
+    }
+  }
+  /* Normalised autocorrelation; returns the strongest lag in [minHz,maxHz]. */
+  function detectPeriod(buf, sr, minHz, maxHz) {
+    const n = buf.length; let rms = 0;
+    for (let i = 0; i < n; i++) rms += buf[i] * buf[i];
+    rms = Math.sqrt(rms / n);
+    if (rms < 1e-4) return { hz: 0, conf: 0, rms };
+    const minLag = Math.floor(sr / maxHz), maxLag = Math.min(Math.floor(sr / minHz), n >> 1);
+    let e0 = 0; for (let i = 0; i < n - maxLag; i++) e0 += buf[i] * buf[i];
+    let best = 0, bestLag = 0;
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let s = 0, e1 = 0;
+      for (let i = 0; i < n - maxLag; i++) { s += buf[i] * buf[i + lag]; e1 += buf[i + lag] * buf[i + lag]; }
+      const c = s / Math.sqrt(e0 * e1 + 1e-12);
+      if (c > best) { best = c; bestLag = lag; }
+    }
+    return { hz: bestLag ? sr / bestLag : 0, conf: best, rms };
+  }
+
+  /* ---------------- sync status UI ---------------- */
+  const statusText = {
+    unconfigured: 'Local only', signedout: 'Not signed in', offline: 'Offline', online: 'Online',
+    syncing: 'Syncing…', synced: 'Synced', error: 'Sync failed', conflict: 'Needs attention',
+  };
+  S.onChange(({ status, detail, user, pending }) => {
+    const b = $('syncBadge'); b.dataset.s = status === 'conflict' ? 'error' : status;
+    $('syncText').textContent = statusText[status] || status;
+    b.title = detail || '';
+    $('acctSignedOut').hidden = !!user; $('acctSignedIn').hidden = !user;
+    if (user) {
+      const md = user.user_metadata || {};
+      $('acctName').textContent = md.full_name || md.name || 'Signed in';
+      $('acctEmail').textContent = user.email || '';
+      if (md.avatar_url) { $('acctImg').src = md.avatar_url; $('acctImg').hidden = false; }
+    }
+    $('pendingCount').textContent = pending;
+    const ls = S.lastSync(); $('lastSync').textContent = ls ? new Date(ls).toLocaleString('en-GB', { timeZone: 'Indian/Maldives' }) : 'never';
+  });
+  $('syncBadge').addEventListener('click', () => { const { status, detail } = S.getStatus(); if (status === 'unconfigured' || status === 'signedout') { showView('settings'); } else { toast(detail || statusText[status]); if (status !== 'offline') S.sync().catch(() => {}); } });
+
+  /* ---------------- wire up ---------------- */
+  function showView(v) {
+    document.querySelectorAll('.view').forEach((s) => { s.hidden = s.id !== 'view-' + v; });
+    document.querySelectorAll('nav button').forEach((b) => { if (b.dataset.view === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('nav button').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
+  $('undoBtn').addEventListener('click', undo);
+  $('editRoutesBtn').addEventListener('click', () => showView('settings'));
+  $('addRouteBtn').addEventListener('click', () => routeSheet(null));
+  $('targetIn').addEventListener('change', () => { const v = parseFloat($('targetIn').value); if (v > 0) { state.settings.target = v; commitProfile(); checkAchievements(); } });
+  $('celebSw').addEventListener('click', () => { state.settings.celebrate = !state.settings.celebrate; commitProfile(); });
+  $('hapticSw').addEventListener('click', () => { state.settings.haptics = !state.settings.haptics; commitProfile(); });
+  $('themeSel').addEventListener('change', () => { state.settings.theme = $('themeSel').value; commitProfile(); });
+  $('cylSel').addEventListener('change', () => { state.settings.cylinders = Number($('cylSel').value); commitProfile(); });
+  $('driveSw').addEventListener('click', () => setDrive($('driveSw').getAttribute('aria-checked') !== 'true'));
+  $('rpmSw').addEventListener('click', () => setRpm($('rpmSw').getAttribute('aria-checked') !== 'true'));
+  $('exportBtn').addEventListener('click', exportJSON);
+  $('copyBtn').addEventListener('click', copyJSON);
+  $('importIn').addEventListener('change', (e) => { if (e.target.files[0]) importJSON(e.target.files[0]); e.target.value = ''; });
+  $('wipeBtn').addEventListener('click', () => confirmSheet('Delete everything on this device?', 'Trips, routes and settings stored in this browser will be erased. Cloud copies (if signed in) are not touched.', () => { localStorage.removeItem(STATE_KEY); S.resetMeta(); state = defaults(); save(); render(); toast('Device data deleted'); }, 'Delete'));
+  $('setupBtn').addEventListener('click', setupSheet);
+  $('signInBtn').addEventListener('click', () => S.signIn().catch((e) => toast(e.message)));
+  $('signOutBtn').addEventListener('click', () => confirmSheet('Sign out?', 'Your trips stay on this device. Unsynced changes will upload the next time you sign in.', () => S.signOut(), 'Sign out'));
+  $('syncNowBtn').addEventListener('click', () => S.sync().catch((e) => toast(e.message)));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+  // Midnight rollover (Maldives time): re-render exactly at 00:00 MVT and re-check every minute.
+  function armMidnight() { setTimeout(() => { render(); toast('New day — counters reset, history kept'); armMidnight(); }, C.nextMidnight(now()) - now() + 500); }
+  armMidnight();
+  let lastKey = C.dayKey(now());
+  setInterval(() => { const k = C.dayKey(now()); if (k !== lastKey) { lastKey = k; render(); } }, 60000);
+
+  // PWA install (optional)
+  let deferredInstall = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; $('installBtn').hidden = false; $('installNote').hidden = true; });
+  $('installBtn').addEventListener('click', async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $('installBtn').hidden = true; });
+  if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js').catch(() => { /* not available on this host; app still works */ }); }
+
+  // Sync store adapter
+  S.init({
+    getState: () => state,
+    hasLocalData: () => liveTrips().length > 0,
+    replaceAll: ({ trips, routes }) => { state.trips = trips; state.routes = routes.length ? routes : defaults().routes; save(); render(); },
+    onOwnerConflict: ownerConflictSheet,
+    applyRemote: (trips, routes, profile) => {
+      if (trips.length) state.trips = C.mergeById(state.trips, trips);
+      if (routes.length) state.routes = C.mergeById(state.routes, routes);
+      if (profile && Number(profile.updated_at) > (state.profileUpdatedAt || 0)) {
+        state.settings = { ...state.settings, ...(profile.settings || {}) };
+        state.celebrated = { ...state.celebrated, ...(profile.celebrated || {}) };
+        state.profileUpdatedAt = Number(profile.updated_at);
+      }
+      save(); render();
+    },
+  });
+
+  render();
+})();
+
+</script>

@@ -1,0 +1,434 @@
+{
+  "version": 2,
+  "createdAt": 1791558283581,
+  "routes": [
+    {
+      "id": "r1",
+      "from": "P1",
+      "to": "P2",
+      "fare": 40,
+      "extra": false
+    },
+    {
+      "id": "r2",
+      "from": "P1",
+      "to": "Male'",
+      "fare": 85,
+      "extra": false
+    },
+    {
+      "id": "r3",
+      "from": "P2",
+      "to": "Male'",
+      "fare": 100,
+      "extra": false
+    },
+    {
+      "id": "r4",
+      "from": "P1",
+      "to": "Hulhule",
+      "fare": 80,
+      "extra": false
+    },
+    {
+      "id": "r5",
+      "from": "P2",
+      "to": "Hulhule",
+      "fare": 85,
+      "extra": false
+    },
+    {
+      "id": "r6",
+      "from": "Male'",
+      "to": "Hulhule",
+      "fare": 70,
+      "extra": false
+    },
+    {
+      "id": "r7",
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false
+    },
+    {
+      "id": "40942e51-b3b2-4e25-a251-bd723dace792",
+      "from": "Extra",
+      "to": ".",
+      "fare": 90,
+      "extra": false
+    },
+    {
+      "id": "x10",
+      "from": "Extra",
+      "to": "",
+      "fare": 10,
+      "extra": true
+    },
+    {
+      "id": "x5",
+      "from": "Extra",
+      "to": "",
+      "fare": 5,
+      "extra": true
+    }
+  ],
+  "trips": [
+    {
+      "id": "2e18d510-6345-4d34-bb82-cca5642ed655",
+      "ts": 1791610978980,
+      "from": "P1",
+      "to": "P2",
+      "fare": 40,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r1"
+    },
+    {
+      "id": "cfe6584f-9b9d-46ee-93df-44dba0f9a58c",
+      "ts": 1791612510693,
+      "from": "P1",
+      "to": "Hulhule",
+      "fare": 80,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r4"
+    },
+    {
+      "id": "879a7cd1-238e-4e50-88de-01d9649a47ab",
+      "ts": 1791612513680,
+      "from": "Extra",
+      "to": "",
+      "fare": 5,
+      "extra": true,
+      "pay": "cash",
+      "note": "",
+      "routeId": "x5"
+    },
+    {
+      "id": "72e4d841-2944-4b2b-830c-c620a493b3f6",
+      "ts": 1791612515464,
+      "from": "Extra",
+      "to": "",
+      "fare": 5,
+      "extra": true,
+      "pay": "cash",
+      "note": "",
+      "routeId": "x5"
+    },
+    {
+      "id": "95716e07-7f19-49c7-a378-3427ce1b1e75",
+      "ts": 1791612521801,
+      "from": "P2",
+      "to": "Hulhule",
+      "fare": 85,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r5"
+    },
+    {
+      "id": "993d470d-62b6-46f3-aa30-1febce0f24a1",
+      "ts": 1791612522848,
+      "from": "Extra",
+      "to": "",
+      "fare": 10,
+      "extra": true,
+      "pay": "cash",
+      "note": "",
+      "routeId": "x10"
+    },
+    {
+      "id": "27398414-634e-4f90-a939-ea7965dc30b1",
+      "ts": 1791621794007,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "70157382-c1a2-400c-9543-a12938730611",
+      "ts": 1791622401949,
+      "from": "P1",
+      "to": "Male'",
+      "fare": 85,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r2"
+    },
+    {
+      "id": "48da0c69-00a8-4164-b4b3-f2961f45a35f",
+      "ts": 1791625508375,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "6a6a5a9b-d784-4cd7-b20e-9e5845569daa",
+      "ts": 1791625510143,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "889a86f2-ad10-4402-b9d9-85ab3f746527",
+      "ts": 1791625511176,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "2a4177e9-fc89-454e-9681-bc193b87adc0",
+      "ts": 1791626002486,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "397a33b3-0617-42b2-b297-4bb4f5c67bd1",
+      "ts": 1791626057783,
+      "from": "Extra",
+      "to": "",
+      "fare": 10,
+      "extra": true,
+      "pay": "cash",
+      "note": "",
+      "routeId": "x10"
+    },
+    {
+      "id": "7cfc0e59-1367-4183-b001-173acdba2a69",
+      "ts": 1791627888997,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "1cdb3df1-8422-43e2-9dea-6b8b19dd5789",
+      "ts": 1791628975986,
+      "from": "P1",
+      "to": "Male'",
+      "fare": 85,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r2"
+    },
+    {
+      "id": "f80451dd-cd58-4a32-b223-367042ff7149",
+      "ts": 1791631509293,
+      "from": "P1",
+      "to": "P2",
+      "fare": 40,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r1"
+    },
+    {
+      "id": "0d4abd24-2a10-4b59-b446-416aa11524c1",
+      "ts": 1791637303673,
+      "from": "P1",
+      "to": "Male'",
+      "fare": 85,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r2"
+    },
+    {
+      "id": "6bb1fef4-33a4-4d25-8546-5fc3324d7f90",
+      "ts": 1791639519602,
+      "from": "P1",
+      "to": "Male'",
+      "fare": 85,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r2"
+    },
+    {
+      "id": "271b462e-4cb3-407d-b892-bfdc09b4173a",
+      "ts": 1791642045593,
+      "from": "P1",
+      "to": "P2",
+      "fare": 40,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r1"
+    },
+    {
+      "id": "f12a9ce5-71ea-4b5b-9abe-c31b545f84da",
+      "ts": 1791642048159,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "715e8f64-b839-4d07-90c5-553d54295903",
+      "ts": 1791642615592,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "e5a4ae9c-322d-493e-abef-f4d57b20caf0",
+      "ts": 1791642961924,
+      "from": "P1",
+      "to": "Male'",
+      "fare": 85,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r2"
+    },
+    {
+      "id": "c7d30e46-bfdd-4aa8-b0b5-ecfbfa4dc1f8",
+      "ts": 1791645441092,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "273cb5f3-e375-4c59-b45c-c0b1f3d662f2",
+      "ts": 1791645473733,
+      "from": "Extra",
+      "to": "",
+      "fare": 10,
+      "extra": true,
+      "pay": "cash",
+      "note": "",
+      "routeId": "x10"
+    },
+    {
+      "id": "d6b7e7c8-b759-4274-a1da-b8479a0c1036",
+      "ts": 1791645483134,
+      "from": "Extra",
+      "to": "",
+      "fare": 10,
+      "extra": true,
+      "pay": "cash",
+      "note": "",
+      "routeId": "x10"
+    },
+    {
+      "id": "c7ca683f-d65b-49ff-9e9c-252c16cd635e",
+      "ts": 1791646221383,
+      "from": "Male'",
+      "to": "Hulhule",
+      "fare": 70,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r6"
+    },
+    {
+      "id": "8ea0ce53-b3b6-4a91-850a-e7c7dcfd25b6",
+      "ts": 1791647156656,
+      "from": "P1",
+      "to": "Hulhule",
+      "fare": 80,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r4"
+    },
+    {
+      "id": "e59fdf4d-147e-4a96-8eb0-1bcf99a4f7dc",
+      "ts": 1791647162829,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    },
+    {
+      "id": "cd71690c-adf1-4a5f-bce3-d0afa964dbb6",
+      "ts": 1791648436609,
+      "from": "Male'",
+      "to": "Hulhule",
+      "fare": 70,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r6"
+    },
+    {
+      "id": "27b565d0-125e-4f9c-8afb-99153b825b77",
+      "ts": 1791648438596,
+      "from": "In",
+      "to": "In",
+      "fare": 30,
+      "extra": false,
+      "pay": "cash",
+      "note": "",
+      "routeId": "r7"
+    }
+  ],
+  "expenses": [],
+  "settings": {
+    "target": 1000,
+    "period": "all",
+    "basis": "gross",
+    "weekStart": 0,
+    "fuelPrice": 0,
+    "pay": "cash",
+    "haptics": true,
+    "celebrate": true,
+    "speedLimit": 60,
+    "speedAlert": true,
+    "speedVoice": true
+  },
+  "celebrated": {
+    "key": "all",
+    "list": [
+      25,
+      50,
+      75,
+      100
+    ]
+  },
+  "exportedAt": "2026-10-11T10:26:23.263Z",
+  "app": "Trip Earnings",
+  "currency": "MVR"
+}

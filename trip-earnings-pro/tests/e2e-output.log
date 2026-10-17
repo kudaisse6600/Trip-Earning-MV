@@ -1,0 +1,48 @@
+PASS 7 preset routes with correct fares
+PASS gross = 70+30+100+5+10 = 215
+PASS trip count = 3 (tips not counted)
+PASS tips = 15
+PASS target progress 21% of 1000
+PASS no achievement yet at 21%
+PASS custom tip 35 adds to earnings
+PASS custom tip does not add a trip
+PASS achievement overlay shown at 25%
+PASS achievement text correct
+PASS still visible after 1 tap
+PASS still visible after 2 taps
+PASS dismissed after exactly 3 taps
+PASS 50%, 75%, 100% each shown once, in order
+PASS 100% overlay gone, none repeated
+PASS no achievement re-fires after 100%
+PASS undo removes last trip
+PASS history lists all 14 live entries (11 trips + 3 tips)
+PASS delete from history works
+PASS today excludes yesterday 23:59 MVT trip but includes 00:00:30 MVT trip (count 11)
+PASS history still shows yesterday (two day groups)
+PASS data survives reload (autosave)
+PASS legacy v2 import succeeded (30 records)
+PASS legacy import keeps preset route directions (Male' → P1 still present)
+PASS history grows by 30 after import
+PASS imported day totals MVR 1,310 / 24 trips
+PASS export is v3 with all 45 live + 2 deleted records
+PASS export round-trips through parser
+PASS custom route appears on Today
+PASS edited fare persists after reload
+PASS custom route persists after reload
+PASS target updates to 2,000
+PASS light theme sets data-theme
+PASS light theme background is light
+PASS dark theme background is dark
+PASS no warning at 60 km/h
+PASS warning shown at 82 km/h with text
+PASS one tap dismisses warning
+PASS no repeat while still above threshold
+PASS warning re-arms after slowing below 70 then speeding again
+PASS GPS speed displayed
+PASS RPM shows dash with mic off (never fabricated)
+PASS badge says Local only when Supabase unconfigured
+PASS Powered by Kuda Isse present
+PASS no horizontal overflow at 390px
+PASS no JavaScript errors in console
+
+46/46 checks passed

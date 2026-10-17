@@ -1,0 +1,27 @@
+PASS badge: Not signed in when configured but no session
+PASS Sign in calls signInWithOAuth(provider=google) with redirect back to the app
+PASS badge: Synced after sign-in
+PASS account name shown
+PASS pre-sign-in local trip uploaded to cloud under user A
+PASS 7 preset routes uploaded
+PASS profile (settings) uploaded
+PASS badge stays Offline while offline
+PASS 2 changes queued while offline
+PASS cloud untouched while offline
+PASS reconnect flushes queue to cloud (3 trips)
+PASS badge: Sync failed when server errors while online
+PASS Sync now recovers
+PASS route edit reaches cloud
+PASS soft delete reaches cloud
+PASS device 2 restores 3 live trips from cloud
+PASS device 2 gets edited fare (MVR 33)
+PASS device 2 hides the trip deleted on device 1
+PASS device 1 pulls device 2 trip on refocus
+PASS user B sees 0 trips (row filter by user_id, as RLS enforces server-side)
+PASS user B's trip stored under user B only
+PASS owner-conflict sheet appears when another account signs in on a device with data
+PASS after discard, device 1 shows only user B's data (1 trip)
+PASS user A's cloud rows untouched by the discard
+PASS sign out: badge Not signed in, local trips kept
+
+25/25 checks passed

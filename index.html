@@ -974,9 +974,9 @@ html[data-theme="daylight"] .seg button.on,html[data-theme="forest"] .seg button
 <script>
 (() => {
 "use strict";
-/* Cloud setup: replace these two placeholders with your Supabase project values. */
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+/* Cloud setup: replace these two placeholders with your  project values. */
+const SUPABASE_URL = "https://dbhcmzwdlpmkwubeofll.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Xpng11FzeZaVzsrNb9kBEQ_oVp375EX";
 let cloudClient = null, cloudUser = null, cloudTimer = null, cloudBusy = false;
 const CLOUD_TABLE = "trip_earnings_data";
 function cloudConfigured(){ return !!(window.supabase && SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR_") && SUPABASE_ANON_KEY.length > 30 && !SUPABASE_ANON_KEY.includes("YOUR_")); }

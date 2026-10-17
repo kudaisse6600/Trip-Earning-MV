@@ -761,8 +761,13 @@ html[data-theme="daylight"] .seg button.on,html[data-theme="forest"] .seg button
     overflow: visible !important;
   }
   #quickRoutes .rbtn {
+    display: flex !important;
     height: auto !important;
     min-height: 76px !important;
+  }
+  /* Override the earlier mobile rule that hid every tile after the sixth. */
+  #quickRoutes .rbtn:nth-child(n+7) {
+    display: flex !important;
   }
   .main {
     overflow-y: auto !important;
